@@ -1,3 +1,4 @@
+# This file will contain all the variables that will be used across TF
 variable "project_id" {
   description = "The ID of the GCP project"
   type        = string

@@ -1,3 +1,4 @@
+# configuration for the GCP provider.
 terraform {
   required_providers {
     google = {

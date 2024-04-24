@@ -12,5 +12,6 @@ variable "region" {
 
 variable "credentials_file_path" {
   description = "The path to the service account key file"
+  default = "./secrets/gcp_svc_key.json"
   type        = string
 }

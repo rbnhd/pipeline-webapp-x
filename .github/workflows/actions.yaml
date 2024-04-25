@@ -67,17 +67,17 @@ jobs:
 
 
 
-    # - name: Setup Terraform
-    #   uses: hashicorp/setup-terraform@v1
-    #   with:
-    #     terraform_version: ${{ env.TF_VERSION }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
 
-    # - name: Terraform init & validate & Plan
-    #   run: |
-    #     set -e
-    #     terraform -chdir=${{ env.TF_WORKSPACE }} init
-    #     terraform -chdir=${{ env.TF_WORKSPACE }} validate 
-    #     terraform -chdir=${{ env.TF_WORKSPACE }} plan 
+    - name: Terraform init & validate & Plan
+      run: |
+        set -e
+        terraform -chdir=${{ env.TF_WORKSPACE }} init
+        terraform -chdir=${{ env.TF_WORKSPACE }} validate 
+        # terraform -chdir=${{ env.TF_WORKSPACE }} plan 
      
 
     # - name: Terraform Apply
@@ -87,55 +87,52 @@ jobs:
 
 
 
-    - name: Configure Kubernetes Credentials
-      run: |
-        gcloud components install gke-gcloud-auth-plugin
-        gke-gcloud-auth-plugin --version
-        export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-        gcloud components update
-        gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }}
-    
-    # - name: Set KUBECONFIG
-    #   run: echo "KUBECONFIG=./kubeconfig" >> $GITHUB_ENV
-
-    - name: Install and configure kubectl
-      run: |
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        chmod +x kubectl
-        sudo mv kubectl /usr/local/bin/
-
-    - name: Replace image paths in Kubernetes manifests
-      run: |
-        for file in ./src/example-voting-app/k8s-specifications/*-deployment.yaml
-        do
-          envsubst < "$file" > "${file}.out"
-          mv "${file}.out" "$file"
-        done
-      env:
-        DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
-
-    - name: Create docker pull secret
-      run: |
-        kubectl create secret docker-registry regcred \
-          --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev \
-          --docker-username=_json_key \
-          --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)" \
-
-    - name: Deploy the web-app to GKE
-      run: |
-        kubectl version --client
-        kubectl apply -f ./src/example-voting-app/k8s-specifications/
-        kubectl get nodes -o wide
-
-
-
-
-
-
-
-
-    # - name: Sleep 5 minutes & Terraform Destroy
-    #   if: always()
+    # - name: Configure Kubernetes Credentials
     #   run: |
-    #     sleep 300
-    #     terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+    #     gcloud components install gke-gcloud-auth-plugin
+    #     gke-gcloud-auth-plugin --version
+    #     export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+    #     gcloud components update
+    #     gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }}
+    
+    # - name: Install and configure kubectl
+    #   run: |
+    #     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    #     chmod +x kubectl
+    #     sudo mv kubectl /usr/local/bin/
+
+    # - name: Replace image paths in Kubernetes manifests
+    #   run: |
+    #     for file in ./src/example-voting-app/k8s-specifications/*-deployment.yaml
+    #     do
+    #       envsubst < "$file" > "${file}.out"
+    #       mv "${file}.out" "$file"
+    #     done
+    #   env:
+    #     DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
+
+    # - name: Create docker pull secret
+    #   run: |
+    #     kubectl create secret docker-registry regcred \
+    #       --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev \
+    #       --docker-username=_json_key \
+    #       --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)" \
+
+    # - name: Deploy the web-app to GKE
+    #   run: |
+    #     kubectl version --client
+    #     kubectl apply -f ./src/example-voting-app/k8s-specifications/
+    #     kubectl get nodes -o wide
+
+
+
+
+
+
+
+
+    - name: Sleep 5 minutes & Terraform Destroy
+      if: always()
+      run: |
+        sleep 300
+        terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

@@ -40,7 +40,7 @@ jobs:
         terraform_version: ${{ env.TF_VERSION }}
 
     - name: Terraform Init
-      run: pwd && terraform init
+      run: pwd && ls -la && terraform init
 
     - name: Terraform Validate
       run: terraform validate -no-color

@@ -20,9 +20,10 @@ Instructions for setting up and deploying the CI/CD pipeline will be provided in
 ## Prerequisites
 
 - A Google Cloud account with necessary permissions to create and manage resources.
-- Terraform installed on your local machine.
-- Docker installed on your local machine.
-- kubectl installed on your local machine.
+- Set up Identity Federation for GitHub Actions. 
+    - [Refere Step by Step following GitHub documentation](https://github.com/google-github-actions/auth?tab=readme-ov-file#workload-identity-federation-through-a-service-account)
+    - [Refer GCP documentation](https://cloud.google.com/iam/docs/workload-identity-federation)
+- A Github Repository
 
 
 

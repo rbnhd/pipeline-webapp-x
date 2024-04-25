@@ -15,8 +15,8 @@ env:
   ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }} 
 
 jobs:
-  terraform:
-    name: 'Terraform'
+  gcp_ci_cd:
+    name: 'GCP CI/CD'
     runs-on: ubuntu-22.04
 
     defaults:
@@ -55,19 +55,19 @@ jobs:
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
 
-    - name: Build and Push Docker Images
-      run: |
-        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest ./src/example-voting-app/vote
-        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest
+    # - name: Build and Push Docker Images
+    #   run: |
+    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest ./src/example-voting-app/vote
+    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest
 
-        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest ./src/example-voting-app/worker
-        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest
+    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest ./src/example-voting-app/worker
+    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest
 
-        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest ./src/example-voting-app/result
-        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest
+    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest ./src/example-voting-app/result
+    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest
   
-        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest ./src/example-voting-app/seed-data
-        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest
+    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest ./src/example-voting-app/seed-data
+    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest
   
     # - name: Setup Terraform
     #   uses: hashicorp/setup-terraform@v1
@@ -92,3 +92,32 @@ jobs:
     # - name: Terraform Destroy
     #   run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
 
+    # - name: Configure Kubernetes Credentials
+    #   run: |
+    #     gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }}
+            
+    - name: Install and configure kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+
+
+
+    - name: Replace image paths in Kubernetes manifests
+      run: |
+        for file in k8s-specifications/*-deployment.yaml
+        do
+          envsubst < "$file" > "${file}.out"
+          mv "${file}.out" "$file"
+        done
+      env:
+        DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
+
+
+
+    - name: Deploy to GKE
+      run:
+        kubectl version
+      # run: |
+      #   kubectl apply -f k8s-specifications/

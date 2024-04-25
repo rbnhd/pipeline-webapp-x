@@ -1,0 +1,3 @@
+credentials_file_path = ###REPLACE_ME###
+project_id            = ###REPLACE_ME###
+region                = ###REPLACE_ME###  # This is optional because we have already provided a default value in the variable declaration

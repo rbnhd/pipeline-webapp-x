@@ -4,10 +4,10 @@ resource "google_compute_network" "vpc" {
   auto_create_subnetworks = "false"
 
   # The VPC should depend on the required API's, Just in case, if it's not enabled already. 
-  depends_on = [
-    google_project_service.compute_api,
-    google_project_service.container_api,
-  ]
+  # depends_on = [
+  #   google_project_service.compute_api,
+  #   google_project_service.container_api,
+  # ]
 }
 
 resource "google_compute_subnetwork" "subnet" {

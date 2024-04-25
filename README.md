@@ -23,6 +23,7 @@ Instructions for setting up and deploying the CI/CD pipeline will be provided in
 - Set up Identity Federation for GitHub Actions. 
     - [Refere Step by Step following GitHub documentation](https://github.com/google-github-actions/auth?tab=readme-ov-file#workload-identity-federation-through-a-service-account)
     - [Refer GCP documentation](https://cloud.google.com/iam/docs/workload-identity-federation)
+- Alternatively using service acccount JSON key can be also used if it's for personal projects
 - A Github Repository
 
 

@@ -10,6 +10,7 @@ env:
   TF_VERSION: 1.8.1
   TF_WORKSPACE: terraform                                   # terraform commands will change dir each time command runs, we want to stay in root dir
   TF_VAR_region: ${{ vars.GCP_REGION }}                     # Prefer to set this in Github variables
+  TF_VAR_state_bucket: ${{ secrets.GCS_BUCKET_NAME }}
   TF_VAR_project_id: ${{ secrets.PROJECT_ID }}              # Google Cloud project ID
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}     # Access service account key from GutHub secrets
   ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }} 
@@ -76,11 +77,11 @@ jobs:
         set -e
         terraform -chdir=${{ env.TF_WORKSPACE }} init
         terraform -chdir=${{ env.TF_WORKSPACE }} validate 
-    #     terraform -chdir=${{ env.TF_WORKSPACE }} plan 
+        terraform -chdir=${{ env.TF_WORKSPACE }} plan 
      
 
-    # - name: Terraform Apply
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
+    - name: Terraform Apply
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
 
 
 
@@ -88,7 +89,9 @@ jobs:
 
     # - name: Configure Kubernetes Credentials
     #   run: |
-    #     gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }}
+    #     gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }} --kubeconfig ./kubeconfig
+    # - name: Set KUBECONFIG
+    #   run: echo "KUBECONFIG=./kubeconfig" >> $GITHUB_ENV
 
     # - name: Install and configure kubectl
     #   run: |

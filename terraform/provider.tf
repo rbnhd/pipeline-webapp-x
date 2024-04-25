@@ -9,11 +9,22 @@ terraform {
   required_version = ">=1.0"
 }
 
+
+# Although it's possible to create the backend storage location at runtime itself, it's a good idea to create the bucket...
+# ... where state file will be stored beforehand and set the bucket name here
+# If you want to automate this process also, refer: https://cloud.google.com/docs/terraform/resource-management/store-state#create_the_bucket
+terraform {
+  backend "gcs" {
+    bucket = "terraform-state-bucket-xyxyxy"
+    prefix = "terraform/state"
+  }
+}
+
 provider "google" {
   project = var.project_id
   region  = var.region
   # # Uncomment this varible in case you are using local execution with service account JSON key
-  # credentials = file(var.credentials_file_path)
+  # credentials = var.credentials_file_path
 }
 
 

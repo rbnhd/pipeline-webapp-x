@@ -9,8 +9,14 @@ terraform {
   required_version = ">=1.0"
 }
 
+provider "google" {
+  project = var.project_id
+  region  = var.region
+  credentials = file(var.credentials_file_path)
+}
 
-# This file will contain all the variables that will be used across TF
+
+# The variables that will be used across TF
 variable "project_id" {
   description = "The ID of the GCP project"
   type        = string
@@ -25,11 +31,4 @@ variable "region" {
 variable "credentials_file_path" {
   description = "The path to the service account key file"
   type        = string
-}
-
-
-provider "google" {
-  project = var.project_id
-  region  = var.region
-  credentials = file(var.credentials_file_path)
 }

@@ -117,7 +117,7 @@ jobs:
 
 
     - name: Deploy to GKE
-      run:
+      run: |
         cat ./src/example-voting-app/k8s-specifications/vote-deployment.yaml
         kubectl version --client
       # run: |

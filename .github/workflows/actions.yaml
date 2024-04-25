@@ -45,8 +45,9 @@ jobs:
         # project_id: ${{ secrets.PROJECT_ID }}
         # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
-    - name: "Set up Google Cloud SDK (gcloud)"
-      uses: "google-github-actions/setup-gcloud@v1"
+
+    # - name: "Set up Google Cloud SDK (gcloud)"
+    #   uses: "google-github-actions/setup-gcloud@v1"
 
 
     # - name: "Authenticate to GCP Artifact Registry"
@@ -118,6 +119,6 @@ jobs:
 
 
 
-    - name: Sleep 15 minutes & Terraform Destroy
-      run: |
-        terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+    # - name: Sleep 15 minutes & Terraform Destroy
+    #   run: |
+    #     terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

@@ -8,8 +8,8 @@ on:
 
 env:
   TF_VERSION: 1.8.1
-  TF_WORKSPACE: terraform
-  TF_VAR_project_id: ${{ secrets.PROJECT_ID }}          
+  TF_WORKSPACE: terraform                                # tearrform commands will change dir each time command runs, we want to stay in root dir
+  TF_VAR_project_id: ${{ vars.PROJECT_ID }}          
   TF_VAR_region: "asia-northeast1"                       # Prefer to set this in Github variables
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}  # Access service account key from GutHub secrets
 

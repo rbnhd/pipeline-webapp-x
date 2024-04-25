@@ -26,11 +26,11 @@ jobs:
     - name: Checkout
       uses: 'actions/checkout@v3'
 
-    - name: Setup Google Cloud Authentication 
-      uses: 'google-github-actions/auth@v2'
-      with:
-        project_id: ${{ secrets.PROJECT_ID }}
-        workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+    # - name: Setup Google Cloud Authentication 
+    #   uses: 'google-github-actions/auth@v2'
+    #   with:
+    #     project_id: ${{ secrets.PROJECT_ID }}
+    #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
       
     - name: Setup Terraform
@@ -41,30 +41,30 @@ jobs:
     - name: Terraform Init
       run: terraform -chdir=${{ env.TF_WORKSPACE }} init
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
             
 
     - name: Terraform Validate
       run: terraform -chdir=${{ env.TF_WORKSPACE }} validate -no-color 
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
 
     - name: Terraform Plan
       run: terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
       continue-on-error: false
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
 
     - name: Terraform Apply
       run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
       continue-on-error: false
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
 
     - name: Terraform Destroy
       run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
       env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}

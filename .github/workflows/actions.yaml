@@ -61,7 +61,7 @@ jobs:
 
     - name: Build and Push Docker Images
       run: |
-        docker build -t --tag ${{ env.GAR_LOCATION }}/vote:latest ./src/example-voting-app/vote
+        docker build --tag ${{ env.GAR_LOCATION }}/vote:latest ./src/example-voting-app/vote
         docker push ${{ env.GAR_LOCATION }}/vote:latest
   
       

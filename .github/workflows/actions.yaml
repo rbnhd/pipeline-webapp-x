@@ -35,7 +35,6 @@ jobs:
 
 
 
-
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
@@ -51,16 +50,9 @@ jobs:
       run: terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
       continue-on-error: false
 
-    # - name: Terraform Apply
-    #   run: terraform apply -auto-approve
-    #   env:
-    #     GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-    #     TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
-    #     TF_VAR_region: ${{ secrets.REGION }}
+    - name: Terraform Apply
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
 
-    # - name: Terraform Destroy
-    #   run: terraform destroy -auto-approve
-    #   env:
-    #     GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-    #     TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
-    #     TF_VAR_region: ${{ secrets.REGION }}
+
+    - name: Terraform Destroy
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

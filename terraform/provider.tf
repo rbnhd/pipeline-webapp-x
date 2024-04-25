@@ -12,6 +12,7 @@ terraform {
 provider "google" {
   project = var.project_id
   region  = var.region
+  # # Uncomment this varible in case you are using local execution with service account JSON key
   # credentials = file(var.credentials_file_path)
 }
 

@@ -14,6 +14,8 @@ spec:
       labels:
         app: result
     spec:
+      imagePullSecrets:
+      - name: regcred
       containers:
       - image: ${DOCKER_IMAGE_PATH}/result:latest
         name: result

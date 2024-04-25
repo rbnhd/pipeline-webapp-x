@@ -55,6 +55,8 @@ jobs:
     - name: Terraform Plan
       run: terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
       continue-on-error: false
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
 
     - name: Terraform Apply
@@ -68,6 +70,8 @@ jobs:
 
     - name: Terraform Destroy
       run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
       # continue-on-error: false
       # env:
       #   GOOGLE_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}

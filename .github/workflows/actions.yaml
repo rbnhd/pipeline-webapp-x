@@ -12,7 +12,7 @@ env:
   TF_VAR_project_id: ${{ secrets.PROJECT_ID }}            # Google Cloud project ID
   TF_VAR_region: ${{ vars.GCP_REGION }}                   # Prefer to set this in Github variables
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}   # Access service account key from GutHub secrets
-  GAR_LOCATION: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/vote
+  ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }} 
 
 jobs:
   terraform:
@@ -61,8 +61,14 @@ jobs:
 
     - name: Build and Push Docker Images
       run: |
-        docker build --tag ${{ env.GAR_LOCATION }}/vote:latest ./src/example-voting-app/vote
-        docker push ${{ env.GAR_LOCATION }}/vote:latest
+        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest ./src/example-voting-app/vote
+        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest
+
+        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest ./src/example-voting-app/worker
+        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest
+
+        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest ./src/example-voting-app/result
+        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest
   
       
     # - name: Setup Terraform

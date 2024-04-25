@@ -1,6 +1,20 @@
-# CI/CD Pipeline for example-voting-app (pipeline-webapp-x)
+<!-- PROJECT SHIELDS -->
+[![LinkedIn][linkedin-shield]][linkedin-url]
 
-This repository contains the configuration and code for a CI/CD pipeline designed for the [example-voting-app](https://github.com/dockersamples/example-voting-app), an open-source web application. The pipeline is built to run on Google Cloud Platform (GCP) and uses a range of technologies to achieve scalability, monitoring, logging, automation, service discovery, and security.
+
+<!-- PROJECT LOGO -->
+<br />
+<p align="center">
+
+  <h1 align="center">CI/CD Pipeline for example-voting-app (pipeline-webapp-x).</h1>
+
+  <p align="center">
+This repository contains the configuration and code for a CI/CD pipeline designed for the example-voting-app(https://github.com/dockersamples/example-voting-app), an open-source web application. The pipeline is built to run on Google Cloud Platform (GCP) and uses a range of technologies to achieve scalability, monitoring, logging, automation, service discovery, and security.
+    <br />
+    <br />
+  </p>
+</p>
+
 
 ## Architecture
 
@@ -74,3 +88,10 @@ Contributions are welcome. Please open an issue to discuss your ideas or initiat
 This project was inspired by the following repositories:
 
 - [example-voting-app](https://github.com/dockersamples/example-voting-app)
+
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[linkedin-shield]: https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white
+[linkedin-url]: https://www.linkedin.com/in/vikram-kushwaha/

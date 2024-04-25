@@ -40,13 +40,13 @@ jobs:
         terraform_version: ${{ env.TF_VERSION }}
 
     - name: Terraform Init
-      run: terraform init -chdir=${{ env.TF_WORKSPACE }}
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} init
 
     - name: Terraform Validate
-      run: terraform validate -no-color -chdir=${{ env.TF_WORKSPACE }}
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} validate -no-color 
 
     - name: Terraform Plan
-      run: terraform plan -no-color -chdir=${{ env.TF_WORKSPACE }}
+      run: terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
       continue-on-error: false
 
     # - name: Terraform Apply

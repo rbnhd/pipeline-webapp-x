@@ -118,6 +118,6 @@ jobs:
 
     - name: Deploy to GKE
       run:
-        kubectl version
+        kubectl version --client
       # run: |
       #   kubectl apply -f ./src/example-voting-app/k8s-specifications/

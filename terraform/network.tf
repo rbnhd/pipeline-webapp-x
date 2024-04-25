@@ -1,6 +1,6 @@
 # This network.tf will create a VPC network and a firewall rule that allows SSH traffic.
 resource "google_compute_network" "vpc" {
-  name                    = "${var.project_id}-vpc1"
+  name                    = "${var.project_id}-vpc"
   auto_create_subnetworks = "false"
 
   # # The VPC should depend on the required API's, Just in case, if it's not enabled already. 
@@ -11,14 +11,14 @@ resource "google_compute_network" "vpc" {
 }
 
 # resource "google_compute_subnetwork" "subnet" {
-#   name          = "${var.project_id}-subnet1"
+#   name          = "${var.project_id}-subnet"
 #   region        = var.region
 #   network       = google_compute_network.vpc.name
 #   ip_cidr_range = "10.10.0.0/24"
 # }
 
 # resource "google_compute_firewall" "default_allow_ssh" {
-#   name    = "${var.project_id}-default-allow-ssh1"
+#   name    = "${var.project_id}-default-allow-ssh"
 #   network = google_compute_network.vpc.self_link
 #   allow {
 #     protocol = "tcp"

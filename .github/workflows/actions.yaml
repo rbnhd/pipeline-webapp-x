@@ -35,7 +35,7 @@ jobs:
     - name: Checkout
       uses: 'actions/checkout@v3'
 
-    - id: "auth"
+    - id: "Authenticate to Google Cloud"
       name: Authenticate with Google Cloud
       uses: "google-github-actions/auth@v2"
       with:
@@ -44,84 +44,96 @@ jobs:
     #     project_id: ${{ secrets.PROJECT_ID }}
     #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
-    - name: "Set up Cloud SDK"
+    - name: "Set up Google Cloud SDK (gcloud)"
       uses: "google-github-actions/setup-gcloud@v1"
 
-    # - name: "Use gcloud CLI"
-    #   run: "gcloud info"
 
     - name: "Authenticate to GCP Artifact Registry"
       run: |-
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
 
+    # - name: Build and Push Docker Images
+    #   run: |
+    #     set -e
+    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest ./src/example-voting-app/vote
+    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest
+
+    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest ./src/example-voting-app/worker
+    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest
+
+    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest ./src/example-voting-app/result
+    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest
+  
+    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest ./src/example-voting-app/seed-data
+    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest
+  
+
+
+
     - name: Build and Push Docker Images
       run: |
-        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest ./src/example-voting-app/vote
-        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest
+        set -e
+        services_list="vote worker result seed-data"
+        for service in $services_list
+        do
+          docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest ./src/example-voting-app/${service}
+          docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
+        done
 
-        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest ./src/example-voting-app/worker
-        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest
 
-        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest ./src/example-voting-app/result
-        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest
-  
-        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest ./src/example-voting-app/seed-data
-        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest
-  
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Terraform Init & validate & Plan
-      run: |
-        terraform -chdir=${{ env.TF_WORKSPACE }} init
-        terraform -chdir=${{ env.TF_WORKSPACE }} validate -no-color
-        terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
+
+    # - name: Setup Terraform
+    #   uses: hashicorp/setup-terraform@v1
+    #   with:
+    #     terraform_version: ${{ env.TF_VERSION }}
+
+    # - name: Terraform init & validate & Plan
+    #   run: |
+    #     set -e
+    #     terraform -chdir=${{ env.TF_WORKSPACE }} init
+    #     terraform -chdir=${{ env.TF_WORKSPACE }} validate 
+    #     terraform -chdir=${{ env.TF_WORKSPACE }} plan 
      
-
-    # - name: Terraform Validate
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} validate -no-color 
-
-    # - name: Terraform Plan
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
-
 
     # - name: Terraform Apply
     #   run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
 
 
-    # - name: Terraform Destroy
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
 
     # - name: Configure Kubernetes Credentials
     #   run: |
     #     gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }}
             
-    - name: Install and configure kubectl
-      run: |
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        chmod +x kubectl
-        sudo mv kubectl /usr/local/bin/
+
+    # - name: Install and configure kubectl
+    #   run: |
+    #     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    #     chmod +x kubectl
+    #     sudo mv kubectl /usr/local/bin/
 
 
 
-    - name: Replace image paths in Kubernetes manifests
-      run: |
-        for file in ./src/example-voting-app/k8s-specifications/*-deployment.yaml
-        do
-          envsubst < "$file" > "${file}.out"
-          mv "${file}.out" "$file"
-        done
-      env:
-        DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
+    # - name: Replace image paths in Kubernetes manifests
+    #   run: |
+    #     for file in ./src/example-voting-app/k8s-specifications/*-deployment.yaml
+    #     do
+    #       envsubst < "$file" > "${file}.out"
+    #       mv "${file}.out" "$file"
+    #     done
+    #   env:
+    #     DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
 
 
 
-    - name: Deploy to GKE
-      run: |
-        cat ./src/example-voting-app/k8s-specifications/vote-deployment.yaml
-        kubectl version --client
-      # run: |
-      #   kubectl apply -f ./src/example-voting-app/k8s-specifications/
+    # - name: Deploy the web-app to GKE
+    #   run: |
+    #     cat ./src/example-voting-app/k8s-specifications/vote-deployment.yaml
+    #     kubectl version --client
+    #   # run: |
+    #   #   kubectl apply -f ./src/example-voting-app/k8s-specifications/
+
+
+    # - name: Terraform Destroy
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

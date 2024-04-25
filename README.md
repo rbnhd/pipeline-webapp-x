@@ -23,7 +23,12 @@ Instructions for setting up and deploying the CI/CD pipeline will be provided in
 - Terraform installed on your local machine.
 - Docker installed on your local machine.
 - kubectl installed on your local machine.
-- Access to a GitHub account.
+
+
+## Files to prepare for local execution
+* Store your variables in terraform.tfvars file. refer terraform.tfvars-SAMPLE for sample
+* Create a service account key and store it locally. Set the credentials_file_path string to relative path of service account key in terraform.tfvars. Note that another way to authenticate terraform with Google Cloud is to use [User Application Default Credentials](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#running-terraform-on-your-workstation). 
+
 
 ## Setup and Deployment
 

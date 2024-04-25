@@ -6,10 +6,10 @@
 <br />
 <p align="center">
 
-  <h1 align="center">CI/CD Pipeline for example-voting-app (pipeline-webapp-x).</h1>
+  <h1 align="center">CI/CD Pipeline on GCP for a microservices-based web application.</h1>
 
   <p align="center">
-This repository contains the configuration and code for a CI/CD pipeline designed for the example-voting-app(https://github.com/dockersamples/example-voting-app), an open-source web application. The pipeline is built to run on Google Cloud Platform (GCP) and uses a range of technologies to achieve scalability, monitoring, logging, automation, service discovery, and security.
+This repository contains the configuration and code for a CI/CD pipeline designed for the example-voting-app (https://github.com/dockersamples/example-voting-app), an open-source web application. The pipeline is built to run on Google Cloud Platform (GCP) and uses a range of technologies to achieve scalability, monitoring, logging, automation, service discovery, and security.
     <br />
     <br />
   </p>

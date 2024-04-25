@@ -26,6 +26,8 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
+      packages: write # needed to push docker image to gcr.io
+      pull-requests: write # needed to create and update comments in PRs
 
 
     steps:
@@ -39,27 +41,33 @@ jobs:
     #     project_id: ${{ secrets.PROJECT_ID }}
     #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
-      
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Terraform Init
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} init
+    - name: Build and Push Docker Images
+      run: |
+        docker build -t gcr.io/${{ secrets.PROJECT_ID }}/vote:latest ./src/example-voting-app/vote
+        docker push gcr.io/${{ secrets.PROJECT_ID }}/vote:latest
+  
+      
+    # - name: Setup Terraform
+    #   uses: hashicorp/setup-terraform@v1
+    #   with:
+    #     terraform_version: ${{ env.TF_VERSION }}
+
+    # - name: Terraform Init
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} init
      
 
-    - name: Terraform Validate
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} validate -no-color 
+    # - name: Terraform Validate
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} validate -no-color 
 
-    - name: Terraform Plan
-      run: terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
-
-
-    - name: Terraform Apply
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
+    # - name: Terraform Plan
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
 
 
-    - name: Terraform Destroy
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+    # - name: Terraform Apply
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
+
+
+    # - name: Terraform Destroy
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
 

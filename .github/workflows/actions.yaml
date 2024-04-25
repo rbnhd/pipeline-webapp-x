@@ -1,0 +1,64 @@
+name: Terraform
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  TF_VERSION: 1.8.1
+  TF_ACTION_WORKING_DIR: terraform
+
+jobs:
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    # Add "id-token" with the intended permissions.
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+
+    steps:
+
+    - name: Checkout
+      uses: 'actions/checkout@v4'
+
+    - name: Setup Google Cloud Authentication 
+      uses: 'google-github-actions/auth@v2'
+      with:
+        project_id: ${{ secrets.PROJECT_ID }}
+        workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+
+
+
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Validate
+      run: terraform validate -no-color
+
+    - name: Terraform Plan
+      run: terraform plan -no-color
+      continue-on-error: false
+
+    # - name: Terraform Apply
+    #   run: terraform apply -auto-approve
+    #   env:
+    #     GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+    #     TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
+    #     TF_VAR_region: ${{ secrets.REGION }}
+
+    # - name: Terraform Destroy
+    #   run: terraform destroy -auto-approve
+    #   env:
+    #     GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+    #     TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
+    #     TF_VAR_region: ${{ secrets.REGION }}

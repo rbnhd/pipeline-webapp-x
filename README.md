@@ -25,10 +25,6 @@ Instructions for setting up and deploying the CI/CD pipeline will be provided in
 - kubectl installed on your local machine.
 
 
-## Files to prepare for local execution
-* Store your variables in terraform.tfvars file. refer terraform.tfvars-SAMPLE for sample
-* Create a service account key and store it locally. Set the credentials_file_path string to relative path of service account key in terraform.tfvars. Note that another way to authenticate terraform with Google Cloud is to use [User Application Default Credentials](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#running-terraform-on-your-workstation). 
-
 
 ## Setup and Deployment
 
@@ -52,7 +48,24 @@ Contributions are welcome. Please open an issue to discuss your ideas or initiat
 
 ## License
 
-*Details on the license will be provided soon.*
+[Custom License](./LICENSE)
+
+
+## Miscellaneous
+
+### Local Execution (Not Recommended)
+
+#### Prerequisites
+- A Google Cloud account with necessary permissions to create and manage resources.
+- Terraform installed on your local machine.
+- Docker installed on your local machine.
+- kubectl installed on your local machine.
+
+#### Files to prepare for local execution
+* Store your variables in terraform.tfvars file. refer terraform.tfvars-SAMPLE for sample
+* Create a service account key and store it locally (See the security implications [here](https://cloud.google.com/iam/docs/migrate-from-service-account-keys)). Set the credentials_file_path string to relative path of service account key in terraform.tfvars. Note that another way to authenticate terraform with Google Cloud is to use [User Application Default Credentials](https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#running-terraform-on-your-workstation). 
+* Then, you can run the terraform commands to initiate, plan, apply & destroy your infrastructure
+
 
 ## Acknowledgements
 

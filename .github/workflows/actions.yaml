@@ -89,7 +89,8 @@ jobs:
 
     - name: Configure Kubernetes Credentials
       run: |
-        gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }} --kubeconfig ./kubeconfig
+        export KUBECONFIG=./kubeconfig  
+        gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }}
     
     - name: Set KUBECONFIG
       run: echo "KUBECONFIG=./kubeconfig" >> $GITHUB_ENV

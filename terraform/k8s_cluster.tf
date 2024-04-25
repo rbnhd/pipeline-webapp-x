@@ -23,11 +23,15 @@ data "google_container_engine_versions" "gke_version" {
 resource "google_container_cluster" "primary" {
   name     = "${var.project_id}-gke"
   location = var.region
+  network    = google_compute_network.vpc.name
+  subnetwork = google_compute_subnetwork.subnet.name
 
   # We can't create a cluster with no node pool defined, but we want to only use
   # separately managed node pools. So we create the smallest possible default node pool and immediately delete it.
   remove_default_node_pool = true
   initial_node_count       = 1
+  deletion_protection = false
+  
   node_config {
     disk_size_gb = 10
     # Use preemptible for lowest cost (if testing)
@@ -35,9 +39,17 @@ resource "google_container_cluster" "primary" {
     machine_type = "e2-micro"
     tags         = ["gke-node", "${var.project_id}-gke", "default-node-gke"]
   }
-  network    = google_compute_network.vpc.name
-  subnetwork = google_compute_subnetwork.subnet.name
-  deletion_protection = false
+
+
+  private_cluster_config {
+    enable_private_endpoint = true
+    enable_private_nodes   = true 
+    master_ipv4_cidr_block = "10.13.0.0/28"
+  }
+  ip_allocation_policy {
+    cluster_ipv4_cidr_block  = "10.11.0.0/21"
+    services_ipv4_cidr_block = "10.12.0.0/21"
+  }
 
 }
 

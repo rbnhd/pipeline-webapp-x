@@ -114,6 +114,13 @@ jobs:
       env:
         DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
 
+    - name: Create docker pull secret
+      run: |
+        kubectl create secret docker-registry regcred \
+          --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev \
+          --docker-username=_json_key \
+          --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)" \
+
     - name: Deploy the web-app to GKE
       run: |
         kubectl version --client

@@ -46,15 +46,14 @@ jobs:
         # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
 
+
     - name: "Set up Google Cloud SDK (gcloud)"
       uses: "google-github-actions/setup-gcloud@v1"
-
 
     - name: "Authenticate to GCP Artifact Registry"
       run: |-
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
-
     # - name: Build and Push Docker Images
     #   run: |
     #     set -e
@@ -68,21 +67,21 @@ jobs:
 
 
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
+    # - name: Setup Terraform
+    #   uses: hashicorp/setup-terraform@v1
+    #   with:
+    #     terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Terraform init & validate & Plan
-      run: |
-        set -e
-        terraform -chdir=${{ env.TF_WORKSPACE }} init
-        terraform -chdir=${{ env.TF_WORKSPACE }} validate 
-        terraform -chdir=${{ env.TF_WORKSPACE }} plan 
+    # - name: Terraform init & validate & Plan
+    #   run: |
+    #     set -e
+    #     terraform -chdir=${{ env.TF_WORKSPACE }} init
+    #     terraform -chdir=${{ env.TF_WORKSPACE }} validate 
+    #     terraform -chdir=${{ env.TF_WORKSPACE }} plan 
      
 
-    - name: Terraform Apply
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
+    # - name: Terraform Apply
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
 
 
 
@@ -121,7 +120,12 @@ jobs:
 
 
 
-    - name: Sleep 5 minutes & Terraform Destroy
-      run: |
-        sleep 300
-        terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+
+
+
+
+    # - name: Sleep 5 minutes & Terraform Destroy
+    #   if: always()
+    #   run: |
+    #     sleep 300
+    #     terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

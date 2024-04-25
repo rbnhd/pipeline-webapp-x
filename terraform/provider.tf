@@ -28,3 +28,9 @@ variable "region" {
   default     = "asia-northeast1"
 }
 
+
+# # Uncomment this varible in case you are using local execution with service account JSON key
+# variable "credentials_file_path" {
+#   description = "The path to the service account key file"
+#   type        = string
+# }

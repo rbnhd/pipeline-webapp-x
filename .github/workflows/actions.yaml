@@ -55,34 +55,34 @@ jobs:
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
 
-    # - name: Build and Push Docker Images
-    #   run: |
-    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest ./src/example-voting-app/vote
-    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest
+    - name: Build and Push Docker Images
+      run: |
+        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest ./src/example-voting-app/vote
+        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/vote:latest
 
-    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest ./src/example-voting-app/worker
-    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest
+        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest ./src/example-voting-app/worker
+        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/worker:latest
 
-    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest ./src/example-voting-app/result
-    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest
+        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest ./src/example-voting-app/result
+        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest
   
-    #     docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest ./src/example-voting-app/seed-data
-    #     docker push ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest
+        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest ./src/example-voting-app/seed-data
+        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest
   
-    # - name: Setup Terraform
-    #   uses: hashicorp/setup-terraform@v1
-    #   with:
-    #     terraform_version: ${{ env.TF_VERSION }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
 
-    # - name: Terraform Init
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} init
+    - name: Terraform Init
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} init
      
 
-    # - name: Terraform Validate
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} validate -no-color 
+    - name: Terraform Validate
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} validate -no-color 
 
-    # - name: Terraform Plan
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
+    - name: Terraform Plan
+      run: terraform -chdir=${{ env.TF_WORKSPACE }}  plan -no-color
 
 
     # - name: Terraform Apply
@@ -118,6 +118,7 @@ jobs:
 
     - name: Deploy to GKE
       run:
+        cat ./src/example-voting-app/k8s-specifications/vote-deployment.yaml
         kubectl version --client
       # run: |
       #   kubectl apply -f ./src/example-voting-app/k8s-specifications/

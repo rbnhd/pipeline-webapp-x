@@ -90,10 +90,12 @@ jobs:
     - name: Configure Kubernetes Credentials
       run: |
         export KUBECONFIG=./kubeconfig  
+        export USE_GKE_GCLOUD_AUTH_PLUGIN=False
+        gcloud components update
         gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }}
     
-    - name: Set KUBECONFIG
-      run: echo "KUBECONFIG=./kubeconfig" >> $GITHUB_ENV
+    # - name: Set KUBECONFIG
+    #   run: echo "KUBECONFIG=./kubeconfig" >> $GITHUB_ENV
 
     - name: Install and configure kubectl
       run: |

@@ -49,6 +49,7 @@ jobs:
     - name: "Docker auth"
       run: |-
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+    
     # # Uncomment this if you wish to use Workload Identity Federation for authentications instead of service account
     # - name: Setup Google Cloud Authentication 
     #   uses: 'google-github-actions/auth@v2'
@@ -57,10 +58,10 @@ jobs:
     #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
 
-    # - name: Build and Push Docker Images
-    #   run: |
-    #     docker build -t gcr.io/${{ secrets.PROJECT_ID }}/vote:latest ./src/example-voting-app/vote
-    #     docker push gcr.io/${{ secrets.PROJECT_ID }}/vote:latest
+    - name: Build and Push Docker Images
+      run: |
+        docker build -t gcr.io/${{ secrets.PROJECT_ID }}/vote:latest ./src/example-voting-app/vote
+        docker push gcr.io/${{ secrets.PROJECT_ID }}/vote:latest
   
       
     # - name: Setup Terraform

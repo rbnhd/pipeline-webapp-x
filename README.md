@@ -1,6 +1,5 @@
 <!-- PROJECT SHIELDS -->
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
+[![LinkedIn][linkedin-shield]][linkedin-url]  [![GCP CI/CD](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml/badge.svg)](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml)
 
 <!-- PROJECT LOGO -->
 <br />

@@ -89,8 +89,9 @@ jobs:
 
     - name: Configure Kubernetes Credentials
       run: |
-        export KUBECONFIG=./kubeconfig  
-        export USE_GKE_GCLOUD_AUTH_PLUGIN=False
+        gcloud components install gke-gcloud-auth-plugin
+        gke-gcloud-auth-plugin --version
+        export USE_GKE_GCLOUD_AUTH_PLUGIN=True
         gcloud components update
         gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }}
     
@@ -115,9 +116,7 @@ jobs:
 
     - name: Deploy the web-app to GKE
       run: |
-        cat ./src/example-voting-app/k8s-specifications/vote-deployment.yaml
         kubectl version --client
-        export KUBECONFIG=./kubeconfig
         kubectl apply -f ./src/example-voting-app/k8s-specifications/
         kubectl get nodes -o wide
 

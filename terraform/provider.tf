@@ -3,10 +3,30 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "5.26.0"
+      version  = ">=5.0.0"
     }
   }
+  required_version = ">=1.0"
 }
+
+
+# This file will contain all the variables that will be used across TF
+variable "project_id" {
+  description = "The ID of the GCP project"
+  type        = string
+}
+
+variable "region" {
+  description = "The region where resources should be created"
+  type        = string
+  default     = "asia-northeast1"
+}
+
+variable "credentials_file_path" {
+  description = "The path to the service account key file"
+  type        = string
+}
+
 
 provider "google" {
   project = var.project_id

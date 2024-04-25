@@ -34,7 +34,6 @@ jobs:
 
     - name: List Services
       run: |
-        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
         gcloud config set project ${{ secrets.PROJECT_ID }}
         gcloud services list
       

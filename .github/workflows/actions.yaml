@@ -11,7 +11,7 @@ env:
   TF_WORKSPACE: terraform
   TF_VAR_project_id: ${{ secrets.PROJECT_ID }}
   TF_VAR_region: "asia-northeast1"
-  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  # GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
 jobs:
   terraform:
@@ -62,19 +62,19 @@ jobs:
 
 
 
-    - name: Terraform Apply
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
-      # env:
-      #   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-      # continue-on-error: false
-      # env:
-      #   GOOGLE_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+    # - name: Terraform Apply
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
+    #   # env:
+    #   #   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    #   # continue-on-error: false
+    #   # env:
+    #   #   GOOGLE_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
 
 
-    - name: Terraform Destroy
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
-      # env:
-      #   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-      # continue-on-error: false
-      # env:
-      #   GOOGLE_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}
+    # - name: Terraform Destroy
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+    #   # env:
+    #   #   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+    #   # continue-on-error: false
+    #   # env:
+    #   #   GOOGLE_CREDENTIALS: ${{ env.GOOGLE_APPLICATION_CREDENTIALS }}

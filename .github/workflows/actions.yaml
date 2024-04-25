@@ -115,6 +115,7 @@ jobs:
       run: |
         cat ./src/example-voting-app/k8s-specifications/vote-deployment.yaml
         kubectl version --client
+        export KUBECONFIG=./kubeconfig
         kubectl apply -f ./src/example-voting-app/k8s-specifications/
         kubectl get nodes -o wide
 

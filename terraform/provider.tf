@@ -28,7 +28,3 @@ variable "region" {
   default     = "asia-northeast1"
 }
 
-# variable "credentials_file_path" {
-#   description = "The path to the service account key file"
-#   type        = string
-# }

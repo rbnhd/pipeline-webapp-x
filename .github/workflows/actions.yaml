@@ -9,8 +9,8 @@ on:
 env:
   TF_VERSION: 1.8.1
   TF_WORKSPACE: terraform                                 # terraform commands will change dir each time command runs, we want to stay in root dir
-  TF_VAR_project_id: ${{ secrets.PROJECT_ID }}            # Google Cloud project ID
   TF_VAR_region: ${{ vars.GCP_REGION }}                   # Prefer to set this in Github variables
+  TF_VAR_project_id: ${{ secrets.PROJECT_ID }}            # Google Cloud project ID
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}   # Access service account key from GutHub secrets
   ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }} 
 
@@ -40,24 +40,20 @@ jobs:
       uses: "google-github-actions/auth@v2"
       with:
         credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+    # # Uncomment the below & comment the credentials_json; if you wish to use Workload Identity Federation for authentications instead of service account
+    #     project_id: ${{ secrets.PROJECT_ID }}
+    #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
     - name: "Set up Cloud SDK"
       uses: "google-github-actions/setup-gcloud@v1"
 
-    - name: "Use gcloud CLI"
-      run: "gcloud info"
+    # - name: "Use gcloud CLI"
+    #   run: "gcloud info"
 
-    - name: "Docker auth"
+    - name: "Authenticate to GCP Artifact Registry"
       run: |-
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
-    # # Uncomment this if you wish to use Workload Identity Federation for authentications instead of service account
-    # - name: Setup Google Cloud Authentication 
-    #   uses: 'google-github-actions/auth@v2'
-    #   with:
-    #     project_id: ${{ secrets.PROJECT_ID }}
-    #     workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-
 
     - name: Build and Push Docker Images
       run: |
@@ -70,7 +66,9 @@ jobs:
         docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest ./src/example-voting-app/result
         docker push ${{ env.ARTIFACT_REGISTRY_URL }}/result:latest
   
-      
+        docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest ./src/example-voting-app/seed-data
+        docker push ${{ env.ARTIFACT_REGISTRY_URL }}/seed-data:latest
+  
     # - name: Setup Terraform
     #   uses: hashicorp/setup-terraform@v1
     #   with:

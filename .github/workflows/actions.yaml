@@ -12,6 +12,7 @@ env:
   TF_VAR_project_id: ${{ secrets.PROJECT_ID }}            # Google Cloud project ID
   TF_VAR_region: ${{ vars.GCP_REGION }}                   # Prefer to set this in Github variables
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}   # Access service account key from GutHub secrets
+  GAR_LOCATION: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/vote
 
 jobs:
   terraform:
@@ -48,7 +49,7 @@ jobs:
 
     - name: "Docker auth"
       run: |-
-        gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+        gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
     # # Uncomment this if you wish to use Workload Identity Federation for authentications instead of service account
     # - name: Setup Google Cloud Authentication 
@@ -60,8 +61,8 @@ jobs:
 
     - name: Build and Push Docker Images
       run: |
-        docker build -t gcr.io/${{ secrets.PROJECT_ID }}/vote:latest ./src/example-voting-app/vote
-        docker push gcr.io/${{ secrets.PROJECT_ID }}/vote:latest
+        docker build -t --tag ${{ env.GAR_LOCATION }}/vote:latest ./src/example-voting-app/vote
+        docker push ${{ env.GAR_LOCATION }}/vote:latest
   
       
     # - name: Setup Terraform

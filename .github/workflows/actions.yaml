@@ -106,7 +106,7 @@ jobs:
 
     - name: Replace image paths in Kubernetes manifests
       run: |
-        for file in k8s-specifications/*-deployment.yaml
+        for file in ./src/example-voting-app/k8s-specifications/*-deployment.yaml
         do
           envsubst < "$file" > "${file}.out"
           mv "${file}.out" "$file"
@@ -120,4 +120,4 @@ jobs:
       run:
         kubectl version
       # run: |
-      #   kubectl apply -f k8s-specifications/
+      #   kubectl apply -f ./src/example-voting-app/k8s-specifications/

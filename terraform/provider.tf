@@ -12,7 +12,7 @@ terraform {
 provider "google" {
   project = var.project_id
   region  = var.region
-  credentials = file(var.credentials_file_path)
+  # credentials = file(var.credentials_file_path)
 }
 
 
@@ -28,7 +28,7 @@ variable "region" {
   default     = "asia-northeast1"
 }
 
-variable "credentials_file_path" {
-  description = "The path to the service account key file"
-  type        = string
-}
+# variable "credentials_file_path" {
+#   description = "The path to the service account key file"
+#   type        = string
+# }

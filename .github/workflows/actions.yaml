@@ -46,13 +46,13 @@ jobs:
         # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
 
-    # - name: "Set up Google Cloud SDK (gcloud)"
-    #   uses: "google-github-actions/setup-gcloud@v1"
+    - name: "Set up Google Cloud SDK (gcloud)"
+      uses: "google-github-actions/setup-gcloud@v1"
 
 
-    # - name: "Authenticate to GCP Artifact Registry"
-    #   run: |-
-    #     gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
+    - name: "Authenticate to GCP Artifact Registry"
+      run: |-
+        gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
 
     # - name: Build and Push Docker Images
@@ -78,47 +78,50 @@ jobs:
         set -e
         terraform -chdir=${{ env.TF_WORKSPACE }} init
         terraform -chdir=${{ env.TF_WORKSPACE }} validate 
-    #     terraform -chdir=${{ env.TF_WORKSPACE }} plan 
+        terraform -chdir=${{ env.TF_WORKSPACE }} plan 
      
 
-    # - name: Terraform Apply
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
+    - name: Terraform Apply
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
 
 
 
 
 
-    # - name: Configure Kubernetes Credentials
-    #   run: |
-    #     gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }} --kubeconfig ./kubeconfig
-    # - name: Set KUBECONFIG
-    #   run: echo "KUBECONFIG=./kubeconfig" >> $GITHUB_ENV
-
-    # - name: Install and configure kubectl
-    #   run: |
-    #     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    #     chmod +x kubectl
-    #     sudo mv kubectl /usr/local/bin/
-
-    # - name: Replace image paths in Kubernetes manifests
-    #   run: |
-    #     for file in ./src/example-voting-app/k8s-specifications/*-deployment.yaml
-    #     do
-    #       envsubst < "$file" > "${file}.out"
-    #       mv "${file}.out" "$file"
-    #     done
-    #   env:
-    #     DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
-
-    # - name: Deploy the web-app to GKE
-    #   run: |
-    #     cat ./src/example-voting-app/k8s-specifications/vote-deployment.yaml
-    #     kubectl version --client
-    #     kubectl apply -f ./src/example-voting-app/k8s-specifications/
-    #     kubectl get nodes -o wide
-
-
-
-    - name: Sleep 15 minutes & Terraform Destroy
+    - name: Configure Kubernetes Credentials
       run: |
+        gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }} --kubeconfig ./kubeconfig
+    
+    - name: Set KUBECONFIG
+      run: echo "KUBECONFIG=./kubeconfig" >> $GITHUB_ENV
+
+    - name: Install and configure kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
+
+    - name: Replace image paths in Kubernetes manifests
+      run: |
+        for file in ./src/example-voting-app/k8s-specifications/*-deployment.yaml
+        do
+          envsubst < "$file" > "${file}.out"
+          mv "${file}.out" "$file"
+        done
+      env:
+        DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
+
+    - name: Deploy the web-app to GKE
+      run: |
+        cat ./src/example-voting-app/k8s-specifications/vote-deployment.yaml
+        kubectl version --client
+        kubectl apply -f ./src/example-voting-app/k8s-specifications/
+        kubectl get nodes -o wide
+
+
+
+
+    - name: Sleep 5 minutes & Terraform Destroy
+      run: |
+        sleep 300
         terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

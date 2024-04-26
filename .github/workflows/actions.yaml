@@ -133,8 +133,8 @@ jobs:
 
 
 
-    - name: Sleep 5 minutes & Terraform Destroy
+    - name: Sleep & then Terraform Destroy
       if: always() # IN testing: terraform destroy will always be ran, no matter success of pipeline, so that resources don't incur cost
       run: |
-        sleep 60
+        sleep 120
         terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

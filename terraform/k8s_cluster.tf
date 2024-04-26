@@ -41,25 +41,26 @@ resource "google_container_cluster" "primary" {
   }
 
 
-  private_cluster_config {
-    enable_private_endpoint = true
-    enable_private_nodes   = true 
-    master_ipv4_cidr_block = "10.13.0.0/28"
+  # private_cluster_config {
+  #   enable_private_endpoint = true
+  #   enable_private_nodes   = true 
+  #   master_ipv4_cidr_block = "10.13.0.0/28"
 
-    master_global_access_config {
-      enabled = true
-    }
-  }
+  #   master_global_access_config {
+  #     enabled = true
+  #   }
+  # }
 
-  ip_allocation_policy {
-    cluster_ipv4_cidr_block  = "10.11.0.0/21"
-    services_ipv4_cidr_block = "10.12.0.0/21"
-  }
+  # # Uncomment if using private GKE cluster. (not possible in testing case where GitHub runner IP needs to access k8s master API)
+  # ip_allocation_policy {
+  #   cluster_ipv4_cidr_block  = "10.11.0.0/21"
+  #   services_ipv4_cidr_block = "10.12.0.0/21"
+  # }
 
-
+  # # Uncomment if using private GKE cluster. (not possible in testing case where GitHub runner IP needs to access k8s master API)
   # master_authorized_networks_config {
   #   cidr_blocks {
-  #     cidr_block   = "0.0.0.0/0"   # When using self hosted GitHub runner, set the CIDR to your self-hosted runner IP range. In this case where using free runners, need to allow all IP so that GitHub can access k8s master network API
+  #     cidr_block   = "10.0.0.0/8"   # When using self hosted GitHub runner, set the CIDR to your self-hosted runner IP range. In this case where using free runners, need to allow all IP so that GitHub can access k8s master network API
   #     display_name = "net1"
   #   }
   # }

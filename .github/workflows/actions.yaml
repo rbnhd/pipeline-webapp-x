@@ -10,19 +10,21 @@ on:
       - '**/.gitignore'
       - 'resources/screenshots/**'
   pull_request:
+    branches:
+      - main
 
 
 env:
   TF_VERSION: 1.8.1
   TF_WORKSPACE: terraform                                   # terraform commands will change dir each time command runs, we want to stay in root dir
   
-  TF_VAR_region: ${{ vars.GCP_REGION }}                     # Prefer to set this in Github variables
-  TF_VAR_state_bucket: ${{ secrets.GCS_BUCKET_NAME }}
+  TF_VAR_region: ${{ vars.GCP_REGION }}                     # GCP region
+  TF_VAR_state_bucket: ${{ secrets.GCS_BUCKET_NAME }}       # GCS bucket to store terraform state
   TF_VAR_project_id: ${{ secrets.PROJECT_ID }}              # Google Cloud project ID
-  TF_VAR_cluster_name: ${{ secrets.PROJECT_ID }}-gke
+  TF_VAR_cluster_name: ${{ secrets.PROJECT_ID }}-gke       
 
-  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}     # Access service account key from GutHub secrets
-  ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }} 
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}     # Google Cloud Service Account key
+  ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }}  # Artifact registry
 
 jobs:
   gcp_ci_cd:
@@ -33,7 +35,6 @@ jobs:
       run:
         shell: bash -e {0}
 
-    # Add "id-token" with the intended permissions.
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -49,33 +50,40 @@ jobs:
 
 
 
-    # - id: "auth"
-    #   name: Authenticate current session to Google Cloud
-    #   uses: "google-github-actions/auth@v2"
-    #   with:
-    #     credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
-    #     # # Uncomment the below & comment the credentials_json; if you wish to use Workload Identity Federation for authentications instead of service account
-    #     # project_id: ${{ secrets.PROJECT_ID }}
-    #     # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+    - id: "auth"
+      name: Authenticate current session to Google Cloud
+      uses: "google-github-actions/auth@v2"
+      with:
+        credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+        # # Uncomment the below & comment the credentials_json; if you wish to use Workload Identity Federation for authentications instead of service account
+        # project_id: ${{ secrets.PROJECT_ID }}
+        # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
-    # - name: "Set up Google Cloud SDK (gcloud cli)"
-    #   uses: "google-github-actions/setup-gcloud@v2"
+    - name: "Set up Google Cloud SDK (gcloud cli)"
+      uses: "google-github-actions/setup-gcloud@v2"
 
-    # - name: "Authenticate to GCP Artifact Registry"
-    #   run: |-
-    #     gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
+    - name: "Authenticate to GCP Artifact Registry"
+      run: |-
+        gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
 
+    - name: Cache Docker layers
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
 
-    # - name: Build and Push Docker Images for voting, result & worker.
-    #   run: |
-    #     services_list="vote worker result"
-    #     for service in $services_list
-    #     do
-    #       docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest ./src/example-voting-app/${service}
-    #       docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
-    #       docker image inspect ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
-    #     done
+    - name: Build and Push Docker Images for voting, result & worker.
+      run: |
+        services_list="vote worker result"
+        for service in $services_list
+        do
+          docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest ./src/example-voting-app/${service}
+          docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
+          docker image inspect ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
+        done
 
 
 
@@ -86,7 +94,7 @@ jobs:
     #   with:
     #     terraform_version: ${{ env.TF_VERSION }}
 
-    # - name: Terraform init, validate & Plan
+    # - name: Terraform init, fmt, validate & Plan
     #   run: terraform -chdir=${{ env.TF_WORKSPACE }} init && terraform -chdir=${{ env.TF_WORKSPACE }} fmt && terraform -chdir=${{ env.TF_WORKSPACE }} validate && terraform -chdir=${{ env.TF_WORKSPACE }} plan
     
     # - name: Terraform Apply
@@ -139,8 +147,8 @@ jobs:
 
 
 
-    # - name: Sleep & then Terraform Destroy
-    #   # set if: always()  In testing env, which means it will run even if previous steps fail.... 
-    #   #  ...This is usually a good practice to clean up resources even if something goes wrong.
-    #   if: always() 
-    #   run: sleep 300 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+    - name: Sleep & then Terraform Destroy
+      # set if: always()  In testing env, which means it will run even if previous steps fail.... 
+      #  ...This is usually a good practice to clean up resources even if something goes wrong.
+      if: always() 
+      run: sleep 300 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

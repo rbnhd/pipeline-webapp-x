@@ -1,5 +1,5 @@
 <!-- PROJECT SHIELDS -->
-[![LinkedIn][linkedin-shield]][linkedin-url]  [![GCP CI/CD](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml/badge.svg)](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml)
+[![GCP CI/CD](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml/badge.svg)](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml)
 
 <!-- PROJECT LOGO -->
 <br />
@@ -108,6 +108,8 @@ This project was inspired by the following repositories:
 - [example-voting-app](https://github.com/dockersamples/example-voting-app)
 
 
+## Connect to me 
+[![LinkedIn][linkedin-shield]][linkedin-url]  
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->

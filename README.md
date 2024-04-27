@@ -26,7 +26,6 @@ The pipeline uses the following key technologies:
 
 ## Getting Started
 
-This project was bootstrapped with the [example-voting-app](https://github.com/dockersamples/example-voting-app). Please follow the link to understand the basic functionality and architecture of the application.
 
 Instructions for setting up and deploying the CI/CD pipeline will be provided in the following sections.
 
@@ -50,8 +49,26 @@ Instructions for setting up and deploying the CI/CD pipeline will be provided in
 *Stages and processes of the CI/CD pipeline will be explained soon.*
 
 ## Monitoring and Logging
+#### For monitoring and logging, Google Cloud Monitoring and logging has been anbled on the GKE cluster. 
+1. **Google Cloud Monitoring**: Cloud Monitoring provides visibility into the performance, uptime, and overall health of applications. 
 
-*Details on integrated monitoring and logging solutions will be provided soon.*
+2. **Google Cloud Logging**: Cloud Logging allows you to store, search, analyze, monitor, and alert on log data and events from Google Cloud and Amazon Web Services. 
+
+
+To balance between cost and monitoring& logging, the following metrics are enabled.  
+- for **Cloud Monitoring**: `SYSTEM` metric and `POD` mertric has been enabled
+  - Can be viewed at your GCP console [Monitoring Dashboard](https://console.cloud.google.com/monitoring)
+
+- for **Cloud LOgging**: `SYSTEM` metric and `WORKLOAD` metric has been enabled
+  - Can be viewed at your GCP console [Log Explorer](https://console.cloud.google.com/logs/)
+
+See more about the metrics at [Configure logging and monitoring for GKE](https://cloud.google.com/kubernetes-engine/docs/how-to/config-logging-monitoring)
+
+
+
+
+
+
 
 ## Security Considerations
 

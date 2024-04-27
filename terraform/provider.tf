@@ -3,7 +3,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version  = ">=5.0.0"
+      version = ">=5.0.0"
     }
   }
   required_version = ">=1.0"
@@ -18,6 +18,7 @@ terraform {
     bucket = "terraform-state-bucket-xyxyxy"
     prefix = "terraform/state"
   }
+
 }
 
 provider "google" {
@@ -41,8 +42,10 @@ variable "region" {
 }
 
 
-# # Uncomment this varible in case you are using local execution with service account JSON key
-# variable "credentials_file_path" {
-#   description = "The path to the service account key file"
-#   type        = string
-# }
+# Uncomment this varible in case you are using local execution with service account JSON key
+/*
+variable "credentials_file_path" {
+  description = "The path to the service account key file"
+  type        = string
+}
+*/

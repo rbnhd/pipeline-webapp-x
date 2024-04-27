@@ -2,12 +2,10 @@
 resource "google_compute_network" "vpc" {
   name                    = "${var.project_id}-vpc"
   auto_create_subnetworks = "false"
+  description             = "VPC for GKE cluster"
 
   # # The VPC should depend on the required API's, Just in case, if it's not enabled already. 
-  depends_on = [
-    google_project_service.compute_api,
-    google_project_service.container_api,
-  ]
+  depends_on = [google_project_service.compute_api, google_project_service.container_api]
 }
 
 resource "google_compute_subnetwork" "subnet" {
@@ -15,6 +13,7 @@ resource "google_compute_subnetwork" "subnet" {
   region        = var.region
   network       = google_compute_network.vpc.name
   ip_cidr_range = "10.10.0.0/24"
+  description   = "Subnet for GKE cluster"
 }
 
 resource "google_compute_firewall" "default_allow_ssh" {
@@ -25,6 +24,7 @@ resource "google_compute_firewall" "default_allow_ssh" {
     ports    = ["22"]
   }
   source_ranges = ["0.0.0.0/0"]
+  description   = "Allow SSH traffic"
 }
 
 resource "google_compute_firewall" "allow_nodeports" {
@@ -35,4 +35,5 @@ resource "google_compute_firewall" "allow_nodeports" {
     ports    = ["31000-31001"]
   }
   source_ranges = ["0.0.0.0/0"]
+  description   = "Allow traffic to GKE NodePorts"
 }

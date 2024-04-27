@@ -3,11 +3,11 @@
 # It cant be enabled by TF, and we cant enable any other API if ["serviceusage.googleapis.com", "cloudresourcemanager.googleapis.com"] is not enabled
 
 resource "google_project_service" "compute_api" {
-  service = "compute.googleapis.com"
+  service            = "compute.googleapis.com"
   disable_on_destroy = false
 }
 
 resource "google_project_service" "container_api" {
-  service = "container.googleapis.com"
+  service            = "container.googleapis.com"
   disable_on_destroy = false
 }

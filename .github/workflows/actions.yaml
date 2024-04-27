@@ -62,10 +62,12 @@ jobs:
     - name: "Set up Google Cloud SDK (gcloud cli)"
       uses: "google-github-actions/setup-gcloud@v2"
 
+
+
+
     - name: "Authenticate to GCP Artifact Registry"
       run: |-
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
-    
 
     - name: Cache Docker layers
       uses: actions/cache@v4
@@ -89,13 +91,13 @@ jobs:
 
 
 
-    # - name: Setup Terraform
-    #   uses: hashicorp/setup-terraform@v3
-    #   with:
-    #     terraform_version: ${{ env.TF_VERSION }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TF_VERSION }}
 
-    # - name: Terraform init, fmt, validate & Plan
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} init && terraform -chdir=${{ env.TF_WORKSPACE }} fmt && terraform -chdir=${{ env.TF_WORKSPACE }} validate && terraform -chdir=${{ env.TF_WORKSPACE }} plan
+    - name: Terraform init, fmt, validate & Plan
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} init && terraform -chdir=${{ env.TF_WORKSPACE }} fmt && terraform -chdir=${{ env.TF_WORKSPACE }} validate && terraform -chdir=${{ env.TF_WORKSPACE }} plan
     
     # - name: Terraform Apply
     #   run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
@@ -119,6 +121,8 @@ jobs:
     #     sudo mv kubectl /usr/local/bin/
 
 
+
+
     # - name: Replace image paths in Kubernetes manifests to fetch image from Google Cloud Artifact Registry.
     #   run: |
     #     for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
@@ -128,6 +132,9 @@ jobs:
     #     done
     #   env:
     #     DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
+
+
+
 
     # - name: Create Docker secret to authenticate against Google Cloud Artifact Registry.
     #   run: kubectl create secret docker-registry gcp-ar-cred --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev --docker-username=_json_key --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)"
@@ -140,8 +147,6 @@ jobs:
     #     kubectl apply -f ./src/example-voting-app/k8s-specs/
     #     gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD
     #     gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --monitoring=SYSTEM,POD
-
-
 
 
 

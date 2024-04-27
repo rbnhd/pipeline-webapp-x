@@ -84,19 +84,14 @@ The CI/CD pipeline is defined in the [actions.yaml](./.github/workflows/actions.
 The pipeline includes the following stages:
 
 1. **Checkout**: Checks out the code from the GitHub repository.
-2. **Authenticate with Google Cloud**: Authenticates to Google Cloud using a service account key.
-3. **Set up Google Cloud SDK (gcloud cli)**: Sets up the Google Cloud SDK on the runner to use the gcloud cli commands.
-4. **Authenticate to GCP Artifact Registry**: Authenticates to Google Cloud Artifact Registry using Docker.
-5. **Build and Push Docker Images for voting, result & worker**: Builds Docker images for the `vote`, `result`, and `worker` services of the application, and pushes them to Google Cloud Artifact Registry.
-6. **Setup Terraform**: Sets up Terraform on the runner.
-7. **Terraform init, fmt, validate & Plan**: Initializes Terraform, formats and validates the Terraform configuration, and creates a Terraform plan.
-8. **Terraform Apply**: Applies the Terraform configuration to create the GKE cluster and associated resources on Google Cloud.
-9. **Get Kubernetes Credentials using gcloud cli**: Retrieves Kubernetes credentials for the newly created GKE cluster using gcloud cli.
-10. **Install and configure kubectl on GKE cluster**: Installs and configures `kubectl` on the runner.
-11. **Replace image paths in Kubernetes manifests to fetch image from Google Cloud Artifact Registry**: Replaces the image paths in the Kubernetes manifests (ex: [vote-sv-depl.yaml](./src/example-voting-app/k8s-specs/vote-sv-depl.yaml)) to point to the images in Google Cloud Artifact Registry.
-12. **Create Docker secret to authenticate against Google Cloud Artifact Registry**: Creates a Docker secret in Kubernetes to authenticate against Google Cloud Artifact Registry.
-13. **Deploy the sample web-app to GKE & enable logging and monitoring**: Deploys the application to the GKE cluster and enables logging and monitoring.
-14. **Sleep & then Terraform Destroy**:  (Only in case of testing) Waits for a period, and then destroys the GKE cluster and associated resources using Terraform. This step is set to run always, no matter whether other steps succeed or fail, because we wan't to ensure we don't incur cloud resource costs. 
+2. **Authenticate with Google Cloud & setup gcloud cli**: Authenticates to Google Cloud using a service account key. Sets up the Google Cloud SDK on the runner to use the gcloud cli commands.
+3. **Authenticate to GCP Artifact Registry & docker build-push**: Authenticates to Google Cloud Artifact Registry using Docker. Builds Docker images for the `vote`, `result`, and `worker` services of the application, and pushes them to Google Cloud Artifact Registry.
+4. **Terraform: setup & deploy**: Sets up Terraform on the runner.  Initializes Terraform, formats and validates the Terraform configuration, and creates a Terraform plan. Applies the Terraform configuration to create the GKE cluster and associated resources on Google Cloud.
+5. **Get Kubernetes Credentials and install kubectl**: using gcloud cli, retrieves Kubernetes credentials for the newly created GKE cluster. Installs and configures `kubectl` on the runner.
+6. **Replace image paths in Kubernetes manifests**: Replaces the variable `DOCKER_IMAGE_PATH` in the Kubernetes manifests (ex: [vote-sv-depl.yaml](./src/example-voting-app/k8s-specs/vote-sv-depl.yaml)) to point to the images in Google Cloud Artifact Registry.
+7. **Create Docker secret to authenticate against Google Cloud Artifact Registry**: Creates a Docker secret in Kubernetes so that the GKE cluster can authenticate against Google Cloud Artifact Registry. (k8s deployment needs to pull image from Artifact Registry)
+8. **Deploy to GKE & enable logging and monitoring**: Deploys the application to the GKE cluster and enable logging and monitoring.
+9. **Sleep & then Terraform Destroy**:  (Only in case of testing) Waits for a period, and then destroys the GKE cluster and associated resources using Terraform. This step is set to run always, no matter whether other steps succeed or fail, because we wan't to ensure we don't incur cloud resource costs. 
 
 <br>
 

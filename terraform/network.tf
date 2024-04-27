@@ -26,3 +26,13 @@ resource "google_compute_firewall" "default_allow_ssh" {
   }
   source_ranges = ["0.0.0.0/0"]
 }
+
+resource "google_compute_firewall" "allow_nodeports" {
+  name    = "${var.project_id}-allow-gke-nodeports"
+  network = google_compute_network.vpc.self_link
+  allow {
+    protocol = "tcp"
+    ports    = ["31000-31001"]
+  }
+  source_ranges = ["0.0.0.0/0"]
+}

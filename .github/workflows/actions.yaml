@@ -104,7 +104,7 @@ jobs:
 
     - name: Replace image paths in Kubernetes manifests
       run: |
-        for file in ./src/example-voting-app/k8s-specifications/*-deployment.yaml
+        for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
         do
           envsubst < "$file" > "${file}.out"
           mv "${file}.out" "$file"
@@ -122,11 +122,8 @@ jobs:
     - name: Deploy the web-app to GKE
       run: |
         kubectl version --client
-        kubectl apply -f ./src/example-voting-app/k8s-specifications/
+        kubectl apply -f ./src/example-voting-app/k8s-specs/
         kubectl get nodes -o wide
-        kubectl get ingress web-ingress
-
-
 
 
 

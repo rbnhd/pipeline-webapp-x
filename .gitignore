@@ -1,6 +1,5 @@
 # temporary files, only intended for local use
-tempsrc
-resources/temp
+temp
 
 # Secrets
 secrets

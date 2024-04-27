@@ -17,7 +17,7 @@ variable "gke_num_nodes" {
 # GKE cluster
 data "google_container_engine_versions" "gke_version" {
   location = var.region
-  version_prefix = "1.27."
+  version_prefix = "1.28."
 }
 
 resource "google_container_cluster" "primary" {
@@ -33,13 +33,15 @@ resource "google_container_cluster" "primary" {
   deletion_protection = false
   
   node_config {
-    disk_size_gb = 10
-    # Use preemptible for lowest cost (if testing)
-    preemptible  = true
+    disk_size_gb = 10     # Minimum size allowed
+    preemptible  = true   # Use preemptible for lowest cost (if testing)
     machine_type = "e2-micro"
     tags         = ["gke-node", "${var.project_id}-gke", "default-node-gke"]
   }
 
+
+  # # NOTE: Uncomment the below blocks, if using private GKE cluster. (not possible in this case, where GitHub runner IP needs to access k8s master API)....
+  # # .....Ideally, your runner would be hosted in same VPC(or VPC peering) as the GKE cluster, and you would use private cluster. 
 
   # private_cluster_config {
   #   enable_private_endpoint = true
@@ -51,13 +53,11 @@ resource "google_container_cluster" "primary" {
   #   }
   # }
 
-  # # Uncomment if using private GKE cluster. (not possible in testing case where GitHub runner IP needs to access k8s master API)
   # ip_allocation_policy {
   #   cluster_ipv4_cidr_block  = "10.11.0.0/21"
   #   services_ipv4_cidr_block = "10.12.0.0/21"
   # }
 
-  # # Uncomment if using private GKE cluster. (not possible in testing case where GitHub runner IP needs to access k8s master API)
   # master_authorized_networks_config {
   #   cidr_blocks {
   #     cidr_block   = "10.0.0.0/8"   # When using self hosted GitHub runner, set the CIDR to your self-hosted runner IP range. In this case where using free runners, need to allow all IP so that GitHub can access k8s master network API
@@ -83,9 +83,8 @@ resource "google_container_node_pool" "primary_nodes" {
     labels = {
       env = var.project_id
     }
-    disk_size_gb = 10
-    # Use preemptible for lowest cost (if testing)
-    preemptible  = true
+    disk_size_gb = 10       # Minimum size allowed
+    preemptible  = true     # Use preemptible for lowest cost (if testing)
     machine_type = "e2-micro"
     tags         = ["gke-node", "${var.project_id}-gke"]
     metadata = {

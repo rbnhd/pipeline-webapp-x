@@ -15,7 +15,7 @@ spec:
         app: vote
     spec:
       imagePullSecrets:
-      - name: regcred
+      - name: gcp-ar-cred
       containers:
       - image: ${DOCKER_IMAGE_PATH}/vote:latest
         name: vote

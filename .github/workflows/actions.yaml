@@ -54,15 +54,15 @@ jobs:
       run: |-
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
-    # - name: Build and Push Docker Images
-    #   run: |
-    #     set -e
-    #     services_list="vote worker result seed-data"
-    #     for service in $services_list
-    #     do
-    #       docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest ./src/example-voting-app/${service}
-    #       docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
-    #     done
+    - name: Build and Push Docker Images
+      run: |
+        set -e
+        services_list="vote worker result"
+        for service in $services_list
+        do
+          docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest ./src/example-voting-app/${service}
+          docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
+        done
 
 
 

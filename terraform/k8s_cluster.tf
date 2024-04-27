@@ -1,4 +1,9 @@
 # This file will contain the configuration for the Kubernetes cluster and node pool.
+variable "cluster_name" {
+  default     = 1
+  description = "Name of the GKE cluster"
+}
+
 variable "gke_username" {
   default     = ""
   description = "gke username"
@@ -21,7 +26,7 @@ data "google_container_engine_versions" "gke_version" {
 }
 
 resource "google_container_cluster" "primary" {
-  name        = "${var.project_id}-gke"
+  name        = var.cluster_name
   location    = var.region
   network     = google_compute_network.vpc.name
   subnetwork  = google_compute_subnetwork.subnet.name
@@ -37,7 +42,7 @@ resource "google_container_cluster" "primary" {
     disk_size_gb = 10   # Minimum size allowed
     preemptible  = true # Use preemptible for lowest cost (if testing)
     machine_type = "e2-micro"
-    tags         = ["gke-node", "${var.project_id}-gke", "default-node-gke"]
+    tags         = ["gke-node", "${var.cluster_name}", "default-node-gke"]
   }
 
   # # NOTE: Uncomment the below blocks, if using private GKE cluster. (not possible in this case, where GitHub runner IP needs to access k8s master API)....
@@ -89,7 +94,7 @@ resource "google_container_node_pool" "primary_nodes" {
     disk_size_gb = 10   # Minimum size allowed
     preemptible  = true # Use preemptible for lowest cost (if testing)
     machine_type = "e2-micro"
-    tags         = ["gke-node", "${var.project_id}-gke"]
+    tags         = ["gke-node", "${var.cluster_name}"]
     metadata = {
       disable-legacy-endpoints = "true"
     }

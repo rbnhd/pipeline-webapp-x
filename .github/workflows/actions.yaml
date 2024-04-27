@@ -1,4 +1,4 @@
-name: GCP CI/CD
+name: 'Google Cloud CI/CD'
 
 on:
   push:
@@ -9,35 +9,43 @@ on:
 env:
   TF_VERSION: 1.8.1
   TF_WORKSPACE: terraform                                   # terraform commands will change dir each time command runs, we want to stay in root dir
+  
   TF_VAR_region: ${{ vars.GCP_REGION }}                     # Prefer to set this in Github variables
   TF_VAR_state_bucket: ${{ secrets.GCS_BUCKET_NAME }}
   TF_VAR_project_id: ${{ secrets.PROJECT_ID }}              # Google Cloud project ID
+  TF_VAR_cluster_name: ${{ secrets.PROJECT_ID }}-gke
+
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}     # Access service account key from GutHub secrets
   ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }} 
 
 jobs:
   gcp_ci_cd:
-    name: 'GCP CI/CD'
+    name: 'Build image and deploy a web app to a new GKE cluster'
     runs-on: ubuntu-22.04
 
     defaults:
       run:
-        shell: bash
+        shell: bash -e {0}
 
     # Add "id-token" with the intended permissions.
     permissions:
       contents: 'read'
       id-token: 'write'
       packages: write # needed to push docker image to gcr.io
-      pull-requests: write # needed to create and update comments in PRs
+
+
+
 
 
     steps:
-    - name: Checkout
+    - name: Git Checkout
       uses: 'actions/checkout@v4'
 
+
+
+
     - id: "auth"
-      name: Authenticate with Google Cloud
+      name: Authenticate current session to Google Cloud
       uses: "google-github-actions/auth@v2"
       with:
         credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
@@ -45,42 +53,37 @@ jobs:
         # project_id: ${{ secrets.PROJECT_ID }}
         # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
-
-
-    - name: "Set up Google Cloud SDK (gcloud)"
-      uses: "google-github-actions/setup-gcloud@v1"
+    - name: "Set up Google Cloud SDK (gcloud cli)"
+      uses: "google-github-actions/setup-gcloud@v2"
 
     - name: "Authenticate to GCP Artifact Registry"
       run: |-
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
     
-    - name: Build and Push Docker Images
+
+
+    - name: Build and Push Docker Images for voting, result & worker.
       run: |
-        set -e
         services_list="vote worker result"
         for service in $services_list
         do
           docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest ./src/example-voting-app/${service}
           docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
+          docker image inspect ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
         done
 
 
 
 
+
     - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
+      uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: ${{ env.TF_VERSION }}
 
-    - name: Terraform init & validate & Plan
-      run: |
-        set -e
-        terraform -chdir=${{ env.TF_WORKSPACE }} init
-        terraform -chdir=${{ env.TF_WORKSPACE }} fmt
-        terraform -chdir=${{ env.TF_WORKSPACE }} validate 
-        terraform -chdir=${{ env.TF_WORKSPACE }} plan 
-     
-
+    - name: Terraform init, validate & Plan
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} init && terraform -chdir=${{ env.TF_WORKSPACE }} fmt && terraform -chdir=${{ env.TF_WORKSPACE }} validate && terraform -chdir=${{ env.TF_WORKSPACE }} plan
+    
     - name: Terraform Apply
       run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
 
@@ -88,21 +91,22 @@ jobs:
 
 
 
-    - name: Configure Kubernetes Credentials
+    - name: Get Kubernetes Credentials using gcloud cli
+    # Starting with v1.26, GKE users will need to download and use a separate authentication plugin to generate GKE-specific tokens...
+    # ... This new binary, gke-gcloud-auth-plugin, uses the Kubernetes Client-go Credential Plugin. See more at: https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
       run: |
-        gcloud components install gke-gcloud-auth-plugin
-        gke-gcloud-auth-plugin --version
-        export USE_GKE_GCLOUD_AUTH_PLUGIN=True
-        gcloud components update
-        gcloud container clusters get-credentials ${{ secrets.PROJECT_ID }}-gke --zone ${{ vars.GCP_REGION }}
+        gcloud components install gke-gcloud-auth-plugin  
+        export USE_GKE_GCLOUD_AUTH_PLUGIN=True 
+        gcloud components update && gcloud container clusters get-credentials ${{ env.TF_VAR_cluster_name }} --zone ${{ vars.GCP_REGION }}
     
-    - name: Install and configure kubectl
+    - name: Install and configure kubectl on GKE cluster
       run: |
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
         chmod +x kubectl
         sudo mv kubectl /usr/local/bin/
 
-    - name: Replace image paths in Kubernetes manifests
+
+    - name: Replace image paths in Kubernetes manifests to fetch image from Google Cloud Artifact Registry.
       run: |
         for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
         do
@@ -112,18 +116,17 @@ jobs:
       env:
         DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
 
-    - name: Create docker pull secret
-      run: |
-        kubectl create secret docker-registry regcred \
-          --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev \
-          --docker-username=_json_key \
-          --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)" \
+    - name: Create Docker secret to authenticate against Google Cloud Artifact Registry.
+      run: kubectl create secret docker-registry gcp-ar-cred --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev --docker-username=_json_key --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)"
+        
 
-    - name: Deploy the web-app to GKE
+
+
+    - name: Deploy the sample web-app to GKE & enable logging and monitoring
       run: |
-        kubectl version --client
         kubectl apply -f ./src/example-voting-app/k8s-specs/
-        kubectl get nodes -o wide
+        gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD
+        gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --monitoring=SYSTEM,POD
 
 
 
@@ -132,7 +135,7 @@ jobs:
 
 
     - name: Sleep & then Terraform Destroy
-      if: always() # IN testing: terraform destroy will always be ran, no matter success of pipeline, so that resources don't incur cost
-      run: |
-        sleep 600
-        terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+      # set if: always()  In testing env, which means it will run even if previous steps fail.... 
+      #  ...This is usually a good practice to clean up resources even if something goes wrong.
+      if: always() 
+      run: sleep 300 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

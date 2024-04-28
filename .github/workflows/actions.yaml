@@ -25,7 +25,7 @@ env:
 
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}     # Google Cloud Service Account key
   ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }}  # Artifact registry
-  DOCKER_IMAGE_TAG : ${{ github.sha }}                   # The docker image will be tagged with sha of the git commit
+  DOCKER_IMAGE_TAG : ${{ github.sha }}                      # The docker image will be tagged with sha of the git commit
 
 jobs:
   gcp_ci_cd:
@@ -48,63 +48,44 @@ jobs:
     - name: Git Checkout
       uses: 'actions/checkout@v4'
 
-    - name: check vars1
-      run: echo $DOCKER_IMAGE_TAG
-
-    - name: check vars2
-      run: echo $GITHUB_SHA
 
 
-    - name: Replace image paths & tag in Kubernetes manifests to fetch built image from Google Cloud Artifact Registry.
+    - id: "auth"
+      name: Authenticate current session to Google Cloud
+      uses: "google-github-actions/auth@v2"
+      with:
+        credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+        # # Uncomment the below & comment the credentials_json; if you wish to use Workload Identity Federation for authentications instead of service account
+        # project_id: ${{ secrets.PROJECT_ID }}
+        # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+
+    - name: "Set up Google Cloud SDK (gcloud cli)"
+      uses: "google-github-actions/setup-gcloud@v2"
+
+
+
+
+    - name: "Authenticate to GCP Artifact Registry"
       run: |
-        for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
+        gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
+
+    - name: Cache Docker layers
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
+    - name: Build and Push Docker Images for voting, result & worker.
+      run: |
+        services_list="vote worker result"
+        for service in $services_list
         do
-          envsubst < "$file" > "${file}.out"
-          mv "${file}.out" "$file"
-          cat "$file"
+          docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }} ./src/example-voting-app/${service}
+          docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
+          docker image inspect ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
         done
-      env:
-        DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
-        DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
-
-
-
-    # - id: "auth"
-    #   name: Authenticate current session to Google Cloud
-    #   uses: "google-github-actions/auth@v2"
-    #   with:
-    #     credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
-    #     # # Uncomment the below & comment the credentials_json; if you wish to use Workload Identity Federation for authentications instead of service account
-    #     # project_id: ${{ secrets.PROJECT_ID }}
-    #     # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-
-    # - name: "Set up Google Cloud SDK (gcloud cli)"
-    #   uses: "google-github-actions/setup-gcloud@v2"
-
-
-
-
-    # - name: "Authenticate to GCP Artifact Registry"
-    #   run: |
-    #     gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
-
-    # - name: Cache Docker layers
-    #   uses: actions/cache@v4
-    #   with:
-    #     path: /tmp/.buildx-cache
-    #     key: ${{ runner.os }}-buildx-${{ github.sha }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-buildx-
-
-    # - name: Build and Push Docker Images for voting, result & worker.
-    #   run: |
-    #     services_list="vote worker result"
-    #     for service in $services_list
-    #     do
-    #       docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }} ./src/example-voting-app/${service}
-    #       docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
-    #       docker image inspect ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
-    #     done
 
 
 
@@ -142,16 +123,17 @@ jobs:
 
 
 
-    # - name: Replace image paths & tag in Kubernetes manifests to fetch built image from Google Cloud Artifact Registry.
-    #   run: |
-    #     for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
-    #     do
-    #       envsubst < "$file" > "${file}.out"
-    #       mv "${file}.out" "$file"
-    #     done
-    #   env:
-    #     DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
-    #     DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
+    - name: Replace image paths & tag in Kubernetes manifests to fetch built image from Google Cloud Artifact Registry.
+      run: |
+        for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
+        do
+          envsubst < "$file" > "${file}.out"
+          mv "${file}.out" "$file"
+          cat "$file"
+        done
+      env:
+        DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
+        DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
 
 
 

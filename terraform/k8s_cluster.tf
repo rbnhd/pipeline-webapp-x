@@ -1,6 +1,6 @@
 # This file will contain the configuration for the Kubernetes cluster and node pool.
 variable "cluster_name" {
-  default     = 1
+  default     = "test-gke"
   description = "Name of the GKE cluster"
 }
 
@@ -34,15 +34,27 @@ resource "google_container_cluster" "primary" {
 
   # We can't create a cluster with no node pool defined, but we want to only use
   # separately managed node pools. So we create the smallest possible default node pool and immediately delete it.
-  remove_default_node_pool = true
-  initial_node_count       = 1
+  # remove_default_node_pool = true
+  initial_node_count       = 0
+
+  # Set `deletion_protection` to `true` will ensure that one cannot
+  # accidentally delete this instance by use of Terraform.
   deletion_protection      = false
+
+  # Enable scaling
+  enable_autopilot         = true
 
   node_config {
     disk_size_gb = 10   # Minimum size allowed
     preemptible  = true # Use preemptible for lowest cost (if testing)
     machine_type = "e2-micro"
     tags         = ["gke-node", "${var.cluster_name}", "default-node-gke"]
+  }
+
+  ip_allocation_policy {
+    stack_type                    = "IPV4_IPV6"
+    services_secondary_range_name = google_compute_subnetwork.subnet.secondary_ip_range[0].range_name
+    cluster_secondary_range_name  = google_compute_subnetwork.subnet.secondary_ip_range[1].range_name
   }
 
   # # NOTE: Uncomment the below blocks, if using private GKE cluster. (not possible in this case, where GitHub runner IP needs to access k8s master API)....
@@ -99,4 +111,5 @@ resource "google_container_node_pool" "primary_nodes" {
       disable-legacy-endpoints = "true"
     }
   }
+
 }

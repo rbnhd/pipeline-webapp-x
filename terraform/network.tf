@@ -32,10 +32,12 @@ resource "google_compute_subnetwork" "subnet" {
 resource "google_compute_firewall" "allow_nodeports" {
   name    = "${var.project_id}-allow-gke-nodeports"
   network = google_compute_network.vpc.self_link
+  direction = "INGRESS"
   allow {
     protocol = "tcp"
-    ports    = ["31000-31001"]
+    ports    = ["31000-31001"] # The port ranges used by k8s-service
   }
   source_ranges = ["0.0.0.0/0"]
+  target_tags = ["gke-node", "${var.cluster_name}"] # Only allow ingress to gke node created
   description   = "Allow traffic to GKE NodePorts"
 }

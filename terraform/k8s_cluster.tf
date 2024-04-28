@@ -39,9 +39,6 @@ resource "google_container_cluster" "primary" {
   # Set `deletion_protection` to `true` will ensure that one cannot accidentally delete this instance by use of Terraform.
   deletion_protection = false
 
-  # enable_autopilot = true
-
-
   node_config {
     disk_size_gb = 10   # Minimum size allowed
     preemptible  = true # Use preemptible for lowest cost (if testing)
@@ -69,6 +66,8 @@ resource "google_container_cluster" "primary" {
     cluster_secondary_range_name  = google_compute_subnetwork.subnet.secondary_ip_range[1].range_name
   }
 
+  # enable_autopilot = true  # enable_autopilot can't be used at the same time as remove_default_node_pool
+
   master_authorized_networks_config {
     cidr_blocks {
       cidr_block   = "10.0.0.0/8" # When using self hosted GitHub runner, set the CIDR to your self-hosted runner IP range. In this case where using free runners, need to allow all IP so that GitHub can access k8s master network API
@@ -89,6 +88,7 @@ resource "google_container_node_pool" "primary_nodes" {
 
   version    = data.google_container_engine_versions.gke_version.release_channel_latest_version["STABLE"]
   node_count = var.gke_num_nodes
+
   node_config {
     oauth_scopes = [
       "https://www.googleapis.com/auth/logging.write",
@@ -97,15 +97,23 @@ resource "google_container_node_pool" "primary_nodes" {
     labels = {
       env = var.project_id
     }
-    disk_size_gb                = 10 # Minimum size allowed
-    disk_type                   = "pd-standard"
-    enable_confidential_storage = true
-    preemptible                 = true # Use preemptible for lowest cost (if testing)
-    spot                        = true # Use spot for lowest cost (if testing)
-    machine_type                = "e2-micro"
-    tags                        = ["gke-node", "${var.cluster_name}"]
+    disk_size_gb = 10 # Minimum size allowed
+    disk_type    = "pd-standard"
+    spot         = true # Use spot for lowest cost (if testing)
+    machine_type = "e2-micro"
+    tags         = ["gke-node", "${var.cluster_name}"]
     metadata = {
       disable-legacy-endpoints = "true"
     }
+  }
+
+  autoscaling {
+    total_min_node_count = 0
+    total_max_node_count = 3
+  }
+
+  timeouts {
+    create = "30m"
+    update = "40m"
   }
 }

@@ -12,19 +12,21 @@ resource "google_compute_subnetwork" "subnet" {
   name          = "${var.project_id}-subnet"
   region        = var.region
   network       = google_compute_network.vpc.name
-  ip_cidr_range = "10.10.0.0/24"
+  ip_cidr_range = "10.0.0.0/16"
   description   = "Subnet for GKE cluster"
-}
 
-resource "google_compute_firewall" "default_allow_ssh" {
-  name    = "${var.project_id}-default-allow-ssh"
-  network = google_compute_network.vpc.self_link
-  allow {
-    protocol = "tcp"
-    ports    = ["22"]
+  stack_type       = "IPV4_IPV6"
+  ipv6_access_type = "INTERNAL"
+
+  secondary_ip_range {
+    range_name    = "services-range"
+    ip_cidr_range = "192.168.0.0/24"
   }
-  source_ranges = ["0.0.0.0/0"]
-  description   = "Allow SSH traffic"
+
+  secondary_ip_range {
+    range_name    = "pod-ranges"
+    ip_cidr_range = "192.168.1.0/24"
+  }
 }
 
 resource "google_compute_firewall" "allow_nodeports" {

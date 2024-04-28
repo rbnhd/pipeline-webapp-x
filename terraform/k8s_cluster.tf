@@ -52,7 +52,7 @@ resource "google_container_cluster" "primary" {
   }
 
   ip_allocation_policy {
-    stack_type                    = "IPV4_IPV6"
+    stack_type                    = "IPV4"
     services_secondary_range_name = google_compute_subnetwork.subnet.secondary_ip_range[0].range_name
     cluster_secondary_range_name  = google_compute_subnetwork.subnet.secondary_ip_range[1].range_name
   }

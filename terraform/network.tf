@@ -2,6 +2,7 @@
 resource "google_compute_network" "vpc" {
   name                    = "${var.project_id}-vpc"
   auto_create_subnetworks = "false"
+  enable_ula_internal_ipv6 = true
   description             = "VPC for GKE cluster"
 
   # # The VPC should depend on the required API's, Just in case, if it's not enabled already. 

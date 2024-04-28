@@ -32,13 +32,11 @@ resource "google_container_cluster" "primary" {
   subnetwork  = google_compute_subnetwork.subnet.name
   description = "Primary GKE cluster"
 
-  # We can't create a cluster with no node pool defined, but we want to only use
-  # separately managed node pools. So we create the smallest possible default node pool and immediately delete it.
+  # We can't create a cluster with no node pool defined, but we want to only use separately managed node pools. So we create the smallest possible default node pool and immediately delete it.
   remove_default_node_pool = true
   initial_node_count       = 1
 
-  # Set `deletion_protection` to `true` will ensure that one cannot
-  # accidentally delete this instance by use of Terraform.
+  # Set `deletion_protection` to `true` will ensure that one cannot accidentally delete this instance by use of Terraform.
   deletion_protection = false
 
   # enable_autopilot = true
@@ -51,11 +49,6 @@ resource "google_container_cluster" "primary" {
     tags         = ["gke-node", "${var.cluster_name}", "default-node-gke"]
   }
 
-  ip_allocation_policy {
-    stack_type                    = "IPV4"
-    services_secondary_range_name = google_compute_subnetwork.subnet.secondary_ip_range[0].range_name
-    cluster_secondary_range_name  = google_compute_subnetwork.subnet.secondary_ip_range[1].range_name
-  }
 
   # # NOTE: Uncomment the below blocks, if using private GKE cluster. (not possible in this case, where GitHub runner IP needs to access k8s master API)....
   # # .....Ideally, your runner would be hosted in same VPC(or VPC peering) as the GKE cluster, and you would use private cluster. 
@@ -71,8 +64,9 @@ resource "google_container_cluster" "primary" {
   }
 
   ip_allocation_policy {
-    cluster_ipv4_cidr_block  = "10.11.0.0/21"
-    services_ipv4_cidr_block = "10.12.0.0/21"
+    stack_type                    = "IPV4"
+    services_secondary_range_name = google_compute_subnetwork.subnet.secondary_ip_range[0].range_name
+    cluster_secondary_range_name  = google_compute_subnetwork.subnet.secondary_ip_range[1].range_name
   }
 
   master_authorized_networks_config {
@@ -114,5 +108,4 @@ resource "google_container_node_pool" "primary_nodes" {
       disable-legacy-endpoints = "true"
     }
   }
-
 }

@@ -1,4 +1,4 @@
-name: 'Google Cloud CI/CD'
+name: 'Google Cloud CI/CD Pipeline'
 
 on:
   push:
@@ -25,11 +25,11 @@ env:
 
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}     # Google Cloud Service Account key
   ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }}  # Artifact registry
-  DOCKER_IMAGE_TAG : ${GITHUB_SHA::6}
+  DOCKER_IMAGE_TAG : ${GITHUB_SHA::10}                      # The docker image will be tagged with trimmed sha of the git commit
 
 jobs:
   gcp_ci_cd:
-    name: 'Build image and deploy a web app to a new GKE cluster'
+    name: 'Build image, create Infra with TF and deploy a web-app to GKE cluster'
     runs-on: ubuntu-22.04
 
     defaults:
@@ -68,7 +68,6 @@ jobs:
 
     - name: "Authenticate to GCP Artifact Registry"
       run: |
-        echo $DOCKER_IMAGE_TAG
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
 
     - name: Cache Docker layers
@@ -159,4 +158,4 @@ jobs:
       # set if: always()  In testing env, which means it will run even if previous steps fail.... 
       #  ...This is usually a good practice to clean up resources even if something goes wrong.
       if: always() 
-      run: sleep 300 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+      run: sleep 60 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

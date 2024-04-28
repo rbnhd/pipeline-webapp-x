@@ -8,7 +8,7 @@ on:
     paths-ignore:
       - '**/README.md'
       - '**/.gitignore'
-      - 'resources/screenshots/**'
+      - 'screenshots/**'
   pull_request:
     branches:
       - main
@@ -68,7 +68,7 @@ jobs:
 
     - name: "Authenticate to GCP Artifact Registry"
       run: |
-        cat $DOCKER_IMAGE_TAG
+        echo $DOCKER_IMAGE_TAG
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
 
     - name: Cache Docker layers

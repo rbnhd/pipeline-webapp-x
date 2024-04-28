@@ -104,7 +104,10 @@ resource "google_container_node_pool" "primary_nodes" {
       env = var.project_id
     }
     disk_size_gb = 10   # Minimum size allowed
+    disk_type = "pd-standard"
+    enable_confidential_storage = true
     preemptible  = true # Use preemptible for lowest cost (if testing)
+    spot  = true # Use spot for lowest cost (if testing)
     machine_type = "e2-micro"
     tags         = ["gke-node", "${var.cluster_name}"]
     metadata = {

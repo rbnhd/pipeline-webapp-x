@@ -34,15 +34,14 @@ resource "google_container_cluster" "primary" {
 
   # We can't create a cluster with no node pool defined, but we want to only use
   # separately managed node pools. So we create the smallest possible default node pool and immediately delete it.
-  # remove_default_node_pool = true
+  remove_default_node_pool = true
   initial_node_count       = 1
 
   # Set `deletion_protection` to `true` will ensure that one cannot
   # accidentally delete this instance by use of Terraform.
-  deletion_protection      = false
+  deletion_protection = false
 
-  # Enable scaling
-  enable_autopilot         = true
+  # enable_autopilot = true
 
 
   node_config {
@@ -63,8 +62,8 @@ resource "google_container_cluster" "primary" {
   /*
   private_cluster_config {
     enable_private_endpoint = true
-    enable_private_nodes   = true 
-    master_ipv4_cidr_block = "10.13.0.0/28"
+    enable_private_nodes    = true
+    master_ipv4_cidr_block  = "10.13.0.0/28"
 
     master_global_access_config {
       enabled = true
@@ -78,7 +77,7 @@ resource "google_container_cluster" "primary" {
 
   master_authorized_networks_config {
     cidr_blocks {
-      cidr_block   = "10.0.0.0/8"   # When using self hosted GitHub runner, set the CIDR to your self-hosted runner IP range. In this case where using free runners, need to allow all IP so that GitHub can access k8s master network API
+      cidr_block   = "10.0.0.0/8" # When using self hosted GitHub runner, set the CIDR to your self-hosted runner IP range. In this case where using free runners, need to allow all IP so that GitHub can access k8s master network API
       display_name = "net1"
     }
   }
@@ -104,13 +103,13 @@ resource "google_container_node_pool" "primary_nodes" {
     labels = {
       env = var.project_id
     }
-    disk_size_gb = 10   # Minimum size allowed
-    disk_type = "pd-standard"
+    disk_size_gb                = 10 # Minimum size allowed
+    disk_type                   = "pd-standard"
     enable_confidential_storage = true
-    preemptible  = true # Use preemptible for lowest cost (if testing)
-    spot  = true # Use spot for lowest cost (if testing)
-    machine_type = "e2-micro"
-    tags         = ["gke-node", "${var.cluster_name}"]
+    preemptible                 = true # Use preemptible for lowest cost (if testing)
+    spot                        = true # Use spot for lowest cost (if testing)
+    machine_type                = "e2-micro"
+    tags                        = ["gke-node", "${var.cluster_name}"]
     metadata = {
       disable-legacy-endpoints = "true"
     }

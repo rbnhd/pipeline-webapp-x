@@ -25,7 +25,7 @@ env:
 
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}     # Google Cloud Service Account key
   ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }}  # Artifact registry
-  DOCKER_IMAGE_TAG : ${{ GITHUB_SHA }}                   # The docker image will be tagged with sha of the git commit
+  DOCKER_IMAGE_TAG : ${{ github.sha }}                   # The docker image will be tagged with sha of the git commit
 
 jobs:
   gcp_ci_cd:

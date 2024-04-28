@@ -17,7 +17,7 @@ spec:
       imagePullSecrets:
       - name: gcp-ar-cred
       containers:
-      - image: ${DOCKER_IMAGE_PATH}/vote:latest
+      - image: ${DOCKER_IMAGE_PATH}/vote:${DOCKER_IMAGE_TAG}
         name: vote
         ports:
         - containerPort: 80

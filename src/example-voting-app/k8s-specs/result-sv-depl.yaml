@@ -17,7 +17,7 @@ spec:
       imagePullSecrets:
       - name: gcp-ar-cred
       containers:
-      - image: ${DOCKER_IMAGE_PATH}/result:latest
+      - image: ${DOCKER_IMAGE_PATH}/result:${DOCKER_IMAGE_TAG}
         name: result
         ports:
         - containerPort: 80

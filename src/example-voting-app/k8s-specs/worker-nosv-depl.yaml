@@ -17,5 +17,5 @@ spec:
       imagePullSecrets:
       - name: gcp-ar-cred
       containers:
-      - image: ${DOCKER_IMAGE_PATH}/worker:latest
+      - image: ${DOCKER_IMAGE_PATH}/worker:${DOCKER_IMAGE_TAG}
         name: worker

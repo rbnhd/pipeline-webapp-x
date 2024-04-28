@@ -25,6 +25,7 @@ env:
 
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}     # Google Cloud Service Account key
   ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }}  # Artifact registry
+  DOCKER_IMAGE_TAG : ${GITHUB_SHA::6}
 
 jobs:
   gcp_ci_cd:
@@ -66,7 +67,8 @@ jobs:
 
 
     - name: "Authenticate to GCP Artifact Registry"
-      run: |-
+      run: |
+        cat $DOCKER_IMAGE_TAG
         gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
 
     - name: Cache Docker layers
@@ -82,9 +84,9 @@ jobs:
         services_list="vote worker result"
         for service in $services_list
         do
-          docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest ./src/example-voting-app/${service}
-          docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
-          docker image inspect ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:latest
+          docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }} ./src/example-voting-app/${service}
+          docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
+          docker image inspect ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
         done
 
 
@@ -123,7 +125,7 @@ jobs:
 
 
 
-    - name: Replace image paths in Kubernetes manifests to fetch image from Google Cloud Artifact Registry.
+    - name: Replace image paths & tag in Kubernetes manifests to fetch built image from Google Cloud Artifact Registry.
       run: |
         for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
         do
@@ -132,6 +134,7 @@ jobs:
         done
       env:
         DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
+        DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
 
 
 
@@ -144,6 +147,7 @@ jobs:
 
     - name: Deploy the sample web-app to GKE & enable logging and monitoring
       run: |
+        cat ./src/example-voting-app/k8s-specs/result-sv-depl.yaml
         kubectl apply -f ./src/example-voting-app/k8s-specs/
         gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM,POD
 

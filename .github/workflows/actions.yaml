@@ -25,7 +25,7 @@ env:
 
   GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}     # Google Cloud Service Account key
   ARTIFACT_REGISTRY_URL: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.ARTIFACT_REGISTRY_REPO_NAME }}  # Artifact registry
-  DOCKER_IMAGE_TAG : ${GITHUB_SHA::10}                      # The docker image will be tagged with trimmed sha of the git commit
+  DOCKER_IMAGE_TAG : ${{ vars.GITHUB_SHA::10 }}                      # The docker image will be tagged with trimmed sha of the git commit
 
 jobs:
   gcp_ci_cd:
@@ -48,114 +48,117 @@ jobs:
     - name: Git Checkout
       uses: 'actions/checkout@v4'
 
-
-
-
-    - id: "auth"
-      name: Authenticate current session to Google Cloud
-      uses: "google-github-actions/auth@v2"
-      with:
-        credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
-        # # Uncomment the below & comment the credentials_json; if you wish to use Workload Identity Federation for authentications instead of service account
-        # project_id: ${{ secrets.PROJECT_ID }}
-        # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-
-    - name: "Set up Google Cloud SDK (gcloud cli)"
-      uses: "google-github-actions/setup-gcloud@v2"
+    - name: check vars
+      run: echo $DOCKER_IMAGE_TAG && echo $GITHUB_SHA
 
 
 
 
-    - name: "Authenticate to GCP Artifact Registry"
-      run: |
-        gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
+    # - id: "auth"
+    #   name: Authenticate current session to Google Cloud
+    #   uses: "google-github-actions/auth@v2"
+    #   with:
+    #     credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+    #     # # Uncomment the below & comment the credentials_json; if you wish to use Workload Identity Federation for authentications instead of service account
+    #     # project_id: ${{ secrets.PROJECT_ID }}
+    #     # workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
 
-    - name: Cache Docker layers
-      uses: actions/cache@v4
-      with:
-        path: /tmp/.buildx-cache
-        key: ${{ runner.os }}-buildx-${{ github.sha }}
-        restore-keys: |
-          ${{ runner.os }}-buildx-
-
-    - name: Build and Push Docker Images for voting, result & worker.
-      run: |
-        services_list="vote worker result"
-        for service in $services_list
-        do
-          docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }} ./src/example-voting-app/${service}
-          docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
-          docker image inspect ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
-        done
+    # - name: "Set up Google Cloud SDK (gcloud cli)"
+    #   uses: "google-github-actions/setup-gcloud@v2"
 
 
 
 
+    # - name: "Authenticate to GCP Artifact Registry"
+    #   run: |
+    #     gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet 
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: ${{ env.TF_VERSION }}
+    # - name: Cache Docker layers
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: /tmp/.buildx-cache
+    #     key: ${{ runner.os }}-buildx-${{ github.sha }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-buildx-
 
-    - name: Terraform init, fmt, validate & Plan
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} init && terraform -chdir=${{ env.TF_WORKSPACE }} fmt && terraform -chdir=${{ env.TF_WORKSPACE }} validate && terraform -chdir=${{ env.TF_WORKSPACE }} plan
+    # - name: Build and Push Docker Images for voting, result & worker.
+    #   run: |
+    #     services_list="vote worker result"
+    #     for service in $services_list
+    #     do
+    #       docker build --tag ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }} ./src/example-voting-app/${service}
+    #       docker push ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
+    #       docker image inspect ${{ env.ARTIFACT_REGISTRY_URL }}/${service}:${{ env.DOCKER_IMAGE_TAG }}
+    #     done
+
+
+
+
+
+    # - name: Setup Terraform
+    #   uses: hashicorp/setup-terraform@v3
+    #   with:
+    #     terraform_version: ${{ env.TF_VERSION }}
+
+    # - name: Terraform init, fmt, validate & Plan
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} init && terraform -chdir=${{ env.TF_WORKSPACE }} fmt && terraform -chdir=${{ env.TF_WORKSPACE }} validate && terraform -chdir=${{ env.TF_WORKSPACE }} plan
     
-    - name: Terraform Apply
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
+    # - name: Terraform Apply
+    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
 
 
 
 
 
-    - name: Get Kubernetes Credentials using gcloud cli
-    # Starting with v1.26, GKE users will need to download and use a separate authentication plugin to generate GKE-specific tokens...
-    # ... This new binary, gke-gcloud-auth-plugin, uses the Kubernetes Client-go Credential Plugin. See more at: https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
-      run: |
-        gcloud components install gke-gcloud-auth-plugin  
-        export USE_GKE_GCLOUD_AUTH_PLUGIN=True 
-        gcloud components update && gcloud container clusters get-credentials ${{ env.TF_VAR_cluster_name }} --zone ${{ vars.GCP_REGION }}
+    # - name: Get Kubernetes Credentials using gcloud cli
+    # # Starting with v1.26, GKE users will need to download and use a separate authentication plugin to generate GKE-specific tokens...
+    # # ... This new binary, gke-gcloud-auth-plugin, uses the Kubernetes Client-go Credential Plugin. See more at: https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+    #   run: |
+    #     gcloud components install gke-gcloud-auth-plugin  
+    #     export USE_GKE_GCLOUD_AUTH_PLUGIN=True 
+    #     gcloud components update && gcloud container clusters get-credentials ${{ env.TF_VAR_cluster_name }} --zone ${{ vars.GCP_REGION }}
     
-    - name: Install and configure kubectl on GKE cluster
-      run: |
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        chmod +x kubectl
-        sudo mv kubectl /usr/local/bin/
+    # - name: Install and configure kubectl on GKE cluster
+    #   run: |
+    #     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    #     chmod +x kubectl
+    #     sudo mv kubectl /usr/local/bin/
 
 
 
 
-    - name: Replace image paths & tag in Kubernetes manifests to fetch built image from Google Cloud Artifact Registry.
-      run: |
-        for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
-        do
-          envsubst < "$file" > "${file}.out"
-          mv "${file}.out" "$file"
-        done
-      env:
-        DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
-        DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
+    # - name: Replace image paths & tag in Kubernetes manifests to fetch built image from Google Cloud Artifact Registry.
+    #   run: |
+    #     for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
+    #     do
+    #       envsubst < "$file" > "${file}.out"
+    #       mv "${file}.out" "$file"
+    #     done
+    #   env:
+    #     DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
+    #     DOCKER_IMAGE_TAG: ${{ env.DOCKER_IMAGE_TAG }}
 
 
 
 
-    - name: Create Docker secret to authenticate against Google Cloud Artifact Registry.
-      run: kubectl create secret docker-registry gcp-ar-cred --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev --docker-username=_json_key --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)"
+    # - name: Create Docker secret to authenticate against Google Cloud Artifact Registry.
+    #   run: kubectl create secret docker-registry gcp-ar-cred --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev --docker-username=_json_key --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)"
         
 
 
 
-    - name: Deploy the sample web-app to GKE & enable logging and monitoring
-      run: |
-        cat ./src/example-voting-app/k8s-specs/result-sv-depl.yaml
-        kubectl apply -f ./src/example-voting-app/k8s-specs/
-        gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM,POD
+    # - name: Deploy the sample web-app to GKE & enable logging and monitoring
+    #   run: |
+    #     cat ./src/example-voting-app/k8s-specs/result-sv-depl.yaml
+    #     kubectl apply -f ./src/example-voting-app/k8s-specs/
+    #     gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM,POD
 
 
 
 
 
-    - name: Sleep & then Terraform Destroy
-      # set if: always()  In testing env, which means it will run even if previous steps fail.... 
-      #  ...This is usually a good practice to clean up resources even if something goes wrong.
-      if: always() 
-      run: sleep 60 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+    # - name: Sleep & then Terraform Destroy
+    #   # set if: always()  In testing env, which means it will run even if previous steps fail.... 
+    #   #  ...This is usually a good practice to clean up resources even if something goes wrong.
+    #   if: always() 
+    #   run: sleep 60 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

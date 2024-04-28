@@ -99,54 +99,53 @@ jobs:
     - name: Terraform init, fmt, validate & Plan
       run: terraform -chdir=${{ env.TF_WORKSPACE }} init && terraform -chdir=${{ env.TF_WORKSPACE }} fmt && terraform -chdir=${{ env.TF_WORKSPACE }} validate && terraform -chdir=${{ env.TF_WORKSPACE }} plan
     
-    # - name: Terraform Apply
-    #   run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
+    - name: Terraform Apply
+      run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve
 
 
 
 
 
-    # - name: Get Kubernetes Credentials using gcloud cli
-    # # Starting with v1.26, GKE users will need to download and use a separate authentication plugin to generate GKE-specific tokens...
-    # # ... This new binary, gke-gcloud-auth-plugin, uses the Kubernetes Client-go Credential Plugin. See more at: https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
-    #   run: |
-    #     gcloud components install gke-gcloud-auth-plugin  
-    #     export USE_GKE_GCLOUD_AUTH_PLUGIN=True 
-    #     gcloud components update && gcloud container clusters get-credentials ${{ env.TF_VAR_cluster_name }} --zone ${{ vars.GCP_REGION }}
+    - name: Get Kubernetes Credentials using gcloud cli
+    # Starting with v1.26, GKE users will need to download and use a separate authentication plugin to generate GKE-specific tokens...
+    # ... This new binary, gke-gcloud-auth-plugin, uses the Kubernetes Client-go Credential Plugin. See more at: https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+      run: |
+        gcloud components install gke-gcloud-auth-plugin  
+        export USE_GKE_GCLOUD_AUTH_PLUGIN=True 
+        gcloud components update && gcloud container clusters get-credentials ${{ env.TF_VAR_cluster_name }} --zone ${{ vars.GCP_REGION }}
     
-    # - name: Install and configure kubectl on GKE cluster
-    #   run: |
-    #     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    #     chmod +x kubectl
-    #     sudo mv kubectl /usr/local/bin/
+    - name: Install and configure kubectl on GKE cluster
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv kubectl /usr/local/bin/
 
 
 
 
-    # - name: Replace image paths in Kubernetes manifests to fetch image from Google Cloud Artifact Registry.
-    #   run: |
-    #     for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
-    #     do
-    #       envsubst < "$file" > "${file}.out"
-    #       mv "${file}.out" "$file"
-    #     done
-    #   env:
-    #     DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
+    - name: Replace image paths in Kubernetes manifests to fetch image from Google Cloud Artifact Registry.
+      run: |
+        for file in ./src/example-voting-app/k8s-specs/*sv-depl.yaml
+        do
+          envsubst < "$file" > "${file}.out"
+          mv "${file}.out" "$file"
+        done
+      env:
+        DOCKER_IMAGE_PATH: ${{ env.ARTIFACT_REGISTRY_URL }}
 
 
 
 
-    # - name: Create Docker secret to authenticate against Google Cloud Artifact Registry.
-    #   run: kubectl create secret docker-registry gcp-ar-cred --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev --docker-username=_json_key --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)"
+    - name: Create Docker secret to authenticate against Google Cloud Artifact Registry.
+      run: kubectl create secret docker-registry gcp-ar-cred --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev --docker-username=_json_key --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)"
         
 
 
 
-    # - name: Deploy the sample web-app to GKE & enable logging and monitoring
-    #   run: |
-    #     kubectl apply -f ./src/example-voting-app/k8s-specs/
-    #     gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD
-    #     gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --monitoring=SYSTEM,POD
+    - name: Deploy the sample web-app to GKE & enable logging and monitoring
+      run: |
+        kubectl apply -f ./src/example-voting-app/k8s-specs/
+        gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM,POD
 
 
 

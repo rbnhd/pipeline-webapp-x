@@ -144,7 +144,6 @@ jobs:
 
     - name: Deploy the sample web-app to GKE & enable logging and monitoring
       run: |
-        cat ./src/example-voting-app/k8s-specs/result-sv-depl.yaml
         kubectl apply -f ./src/example-voting-app/k8s-specs/
         gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM,POD
 

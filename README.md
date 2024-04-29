@@ -5,7 +5,7 @@
 <br />
 <p align="center">
 
-  <h1 align="center">CI/CD on Google Cloud with Terraform, on Google Kubernetes.</h1>
+  <h1 align="center">CI/CD on Google Cloud for a Web App.</h1>
 
   <p align="center">
 This repository contains the configuration and code for a CI/CD pipeline designed to integrate and deploy an open-source web application on Google Cloud. The pipeline is built to run using GitHub actions; which creates infrastructure on Google Cloud with Terraform and then deploys a web voting app on Google Kubernetes Engine.

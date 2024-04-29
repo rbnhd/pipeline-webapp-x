@@ -95,11 +95,11 @@ The pipeline includes the following stages:
 
 1. **Checkout**: Checks out the code from the GitHub repository.
 
-2. **Authenticate with Google Cloud & setup gcloud cli**: Authenticates to Google Cloud using a service account key (uses `google-github-actions/auth`). Sets up the Google Cloud SDK on the runner to use the `gcloud` cli commands. `gcloud` is the Google Cloud cli, which will be used to authenticate to artifact registry, GKE cluster, update GKE cluster, etc. 
+2. **Authenticate with Google Cloud & setup gcloud cli**: Authenticates to Google Cloud using a service account key (uses [google-github-actions/auth](https://github.com/google-github-actions/auth)). Sets up the Google Cloud SDK on the runner to use the `gcloud` cli commands. `gcloud` is the Google Cloud cli, which will be used to authenticate to artifact registry, GKE cluster, update GKE cluster, etc. 
 
-3. **Authenticate to Artifact Registry & do docker build-push**: Authenticates to Google Cloud Artifact Registry using `gcloud`. Builds Docker images (uses caching to improve workflow execution time.) for the `vote`, `result`, and `worker` services of the application, and pushes them to Google Cloud Artifact Registry.
+3. **Authenticate to Artifact Registry & do docker build-push**: Authenticates to Google Cloud Artifact Registry using `gcloud` (uses [google-github-actions/setup-gcloud](https://github.com/google-github-actions/setup-gcloud)). Builds Docker images (uses caching to improve workflow execution time.) for the `vote`, `result`, and `worker` services of the application, and pushes them to Google Cloud Artifact Registry.
 
-4. **Terraform: setup & deploy**: Sets up Terraform on the runner.  Initializes Terraform, formats and validates (`init`, `fmt`, `validate`,) the Terraform configuration, and creates a `terraform plan`. Applies the Terraform configuration to create the GKE cluster and associated resources (VPC, Subnets, Firewalls, Node Pool) on Google Cloud.
+4. **Terraform: setup & deploy**: Sets up Terraform on the runner.  Initializes Terraform, formats and validates (`init`, `fmt`, `validate`,) the Terraform configuration, and creates a `terraform plan`. Applies the Terraform configuration to create the GKE cluster and associated resources (VPC, Subnets, Firewalls, Node Pool) on Google Cloud. (uses actions [hashicorp/setup-terraform](https://github.com/hashicorp/setup-terraform))
 
 5. **Get Kubernetes Credentials and install kubectl**: using `gcloud` cli, retrieves Kubernetes credentials for the newly created GKE cluster. Installs and configures `kubectl` on the runner.
       ```

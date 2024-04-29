@@ -1,5 +1,5 @@
 <!-- PROJECT SHIELDS -->
-[![GCP CI/CD](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml/badge.svg)](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml) &nbsp;&nbsp; [![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](./LICENSE)
+[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](./LICENSE)
 
 <!-- PROJECT LOGO -->
 <br />

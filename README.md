@@ -1,18 +1,19 @@
 <!-- PROJECT SHIELDS -->
-[![GCP CI/CD](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml/badge.svg)](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml)
+[![GCP CI/CD](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml/badge.svg)](https://github.com/rbnhd/pipeline-webapp-x/actions/workflows/actions.yaml) &nbsp;&nbsp; [![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](./LICENSE)
 
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
 
-  <h1 align="center">CI/CD Pipeline on GCP for a microservices-based web application.</h1>
+  <h1 align="center">CI/CD on Google Cloud with Terraform, on Google Kubernetes.</h1>
 
   <p align="center">
-This repository contains the configuration and code for a CI/CD pipeline designed for the example-voting-app, an open-source web application. The pipeline is built to run on Google Cloud Platform (GCP) and uses a range of technologies to achieve scalability, monitoring, logging, automation & and security.
+This repository contains the configuration and code for a CI/CD pipeline designed to integrate and deploy an open-source web application on Google Cloud. The pipeline is built to run using GitHub actions; which creates infrastructure on Google Cloud with Terraform and then deploys a web voting app on Google Kubernetes Engine.
     <br />
     <br />
   </p>
 </p>
+
 
 
 ## Table of Contents
@@ -21,13 +22,14 @@ This repository contains the configuration and code for a CI/CD pipeline designe
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
   - [Set GitHub Repository Secrets and Variables](#set-github-repository-secrets-and-variables)
-  - [Usage](#usage)
-- [CI/CD Pipeline Explanation](#cicd-pipeline-explanation)
+  - [**Usage**](#usage)
+- [Pipeline Explanation](#pipeline-explanation)
 - [Monitoring and Logging](#monitoring-and-logging)
 - [Security Considerations](#security-considerations)
 - [Contributing](#contributing)
 - [License](#license)
 - [Acknowledgements](#acknowledgements)
+- [Connect with me](#connect-with-me)
 - [Miscellaneous](#miscellaneous)
 
 
@@ -71,34 +73,66 @@ You can set these secrets & variables in the "Secrets and variables" section of 
 
 ### Usage
 
-Once you've set the necessary secrets, you can deploy the CI/CD pipeline by pushing to the `main` branch or creating a pull request. This will trigger the GitHub Actions workflow, which will then build, test, and deploy your application to Google Cloud.
+Once you've set the necessary secrets, **you can deploy the CI/CD pipeline by pushing to the `main`, `release/*` branch or creating a pull request to `main`**. This will trigger the GitHub Actions workflow, which will then build, test, and deploy your application to Google Cloud.
 
 You can monitor the progress of the workflow in the "Actions" tab of your GitHub repository. If the workflow completes successfully, your application will be deployed to a GKE cluster on Google Cloud. 
+**NOTE**: Please remove this block from [actions](./.github/workflows/actions.yaml) if you don't want to delete your infrastructure automatically
+```
+    - name: Sleep & then Terraform Destroy
+      if: always() 
+      run: sleep 600 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+```
 
 <br>
 
-## CI/CD Pipeline Explanation
+## Pipeline Explanation
 
-The CI/CD pipeline is defined in the [actions.yaml](./.github/workflows/actions.yaml) file in this repository. The pipeline is triggered on every `push` or `pull_request` event to the `main` branch or any branch with `releases/*` pattern. 
+The CI/CD pipeline is defined in the [actions.yaml](./.github/workflows/actions.yaml) file in this repository. 
+  - The pipeline is triggered on every `push` or `pull_request` event to the `main` branch or `push` to any branch with `releases/*` pattern. 
+  - The pipeline **ignores changes** to `README`, .`gitignore` or `screenshots/` and doesn't run on changes to these files for obvious reasons.
 
 The pipeline includes the following stages:
 
 1. **Checkout**: Checks out the code from the GitHub repository.
-2. **Authenticate with Google Cloud & setup gcloud cli**: Authenticates to Google Cloud using a service account key. Sets up the Google Cloud SDK on the runner to use the gcloud cli commands.
-3. **Authenticate to GCP Artifact Registry & docker build-push**: Authenticates to Google Cloud Artifact Registry using Docker. Builds Docker images for the `vote`, `result`, and `worker` services of the application, and pushes them to Google Cloud Artifact Registry.
-4. **Terraform: setup & deploy**: Sets up Terraform on the runner.  Initializes Terraform, formats and validates the Terraform configuration, and creates a Terraform plan. Applies the Terraform configuration to create the GKE cluster and associated resources on Google Cloud.
-5. **Get Kubernetes Credentials and install kubectl**: using gcloud cli, retrieves Kubernetes credentials for the newly created GKE cluster. Installs and configures `kubectl` on the runner.
-6. **Replace image paths in Kubernetes manifests**: Replaces the variable `DOCKER_IMAGE_PATH` in the Kubernetes manifests (ex: [vote-sv-depl.yaml](./src/example-voting-app/k8s-specs/vote-sv-depl.yaml)) to point to the images in Google Cloud Artifact Registry.
-7. **Create Docker secret to authenticate against Google Cloud Artifact Registry**: Creates a Docker secret in Kubernetes so that the GKE cluster can authenticate against Google Cloud Artifact Registry. (k8s deployment needs to pull image from Artifact Registry)
-8. **Deploy to GKE & enable logging and monitoring**: Deploys the application to the GKE cluster and enable logging and monitoring.
-9. **Sleep & then Terraform Destroy**:  (Only in case of testing) Waits for a period, and then destroys the GKE cluster and associated resources using Terraform. This step is set to run always, no matter whether other steps succeed or fail, because we wan't to ensure we don't incur cloud resource costs. 
+
+2. **Authenticate with Google Cloud & setup gcloud cli**: Authenticates to Google Cloud using a service account key (uses `google-github-actions/auth`). Sets up the Google Cloud SDK on the runner to use the `gcloud` cli commands. `gcloud` is the Google Cloud cli, which will be used to authenticate to artifact registry, GKE cluster, update GKE cluster, etc. 
+
+3. **Authenticate to Artifact Registry & do docker build-push**: Authenticates to Google Cloud Artifact Registry using `gcloud`. Builds Docker images (uses caching to improve workflow execution time.) for the `vote`, `result`, and `worker` services of the application, and pushes them to Google Cloud Artifact Registry.
+
+4. **Terraform: setup & deploy**: Sets up Terraform on the runner.  Initializes Terraform, formats and validates (`init`, `fmt`, `validate`,) the Terraform configuration, and creates a `terraform plan`. Applies the Terraform configuration to create the GKE cluster and associated resources (VPC, Subnets, Firewalls, Node Pool) on Google Cloud.
+
+5. **Get Kubernetes Credentials and install kubectl**: using `gcloud` cli, retrieves Kubernetes credentials for the newly created GKE cluster. Installs and configures `kubectl` on the runner.
+      ```
+      gcloud components install gke-gcloud-auth-plugin
+      gcloud components update && gcloud container clusters get-credentials CLUSTER_NAME --zone REGION
+      ```
+
+6. **Replace image paths in Kubernetes manifests**: Replaces the variable `DOCKER_IMAGE_PATH` and `DOCKER_IMAGE_TAG` in the Kubernetes manifests (ex: [vote-sv-depl.yaml](./src/example-voting-app/k8s-specs/vote-sv-depl.yaml)) to point to the correct image & tag in Google Cloud Artifact Registry. The docker images are tagged with the GIT COMMIT SHA in the previous step, and kubernetes manifests file's placeholder value is replaces with it.
+
+7. **Create Docker secret to authenticate against Google Cloud Artifact Registry**: Creates a Docker secret in Kubernetes so that the GKE cluster can authenticate against Google Cloud Artifact Registry. (This is necssary for kubernetes deployments to pull image from Artifact Registry)
+    ```
+    kubectl create secret docker-registry  SECRET_NAME --other-flags VALUE
+    ```
+
+8. **Deploy to GKE & enable Logging and Monitoring**: Deploy the web application to the GKE cluster in the self managed node (after healthchecks) and enable logging and monitoring.
+    ```
+    kubectl apply -f PATH_TO_MANIFEST_FILES 
+    gcloud container clusters update CLUSTER_NAME --location=LOCATION --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM,POD
+    ```
+
+9. **Sleep & then Terraform Destroy**:  (Only in case of testing) Waits for a period, and then destroys the GKE cluster and associated resources using Terraform. **This step is set to run always, no matter whether other steps succeed or fail, because we wan't to ensure we don't incur cloud resource costs.**
+    ```
+    if: always() 
+    run: sleep 600 && terraform destroy -auto-approve
+    ```
+Moreover, you can always refer to inline comments for more explanation in [actions](./.github/workflows/actions.yaml), [terraform files](./terraform/) and [k8s manifests](./src/example-voting-app/k8s-specs/)
 
 <br>
 
 
 ## Monitoring and Logging
 
-#### For monitoring and logging, Google Cloud Monitoring and logging is enabled on the GKE cluster. 
+#### For monitoring and logging, Google Cloud Monitoring and logging is enabled on the GKE cluster. See [Screenshots](./screenshots/)
 
 1. **Google Cloud Monitoring**: Cloud Monitoring provides visibility into the performance, uptime, and overall health of applications. 
     - *Usage*: By using Google Cloud Monitoring, we can set up dashboards and alerts for our applications and infrastructure. For example, we can monitor CPU and memory usage of our nodes and containers, and set up alerts to be notified when usage is too high. This can help in identifying and resolving performance issues, and can guide us in scaling our applications appropriately.
@@ -115,7 +149,7 @@ The pipeline includes the following stages:
 
     See more about the metrics at [Configure logging and monitoring for GKE](https://cloud.google.com/kubernetes-engine/docs/how-to/config-logging-monitoring)
 
-3. **Tracing**: Open source tools like **[OpenTelemetry](https://opentelemetry.io/)** can also be explored if needed. In production environments, Ideally, we will also use OpenTelemetry tracking package, to send traces to [Google Cloud Trace](https://cloud.google.com/trace) for inspection and analysis; and create analysis report on Cloud Trace to analyse user requuest. See more here. [Easy Telemetry Instrumentation on GKE with the OpenTelemetry Operator](https://cloud.google.com/blog/topics/developers-practitioners/easy-telemetry-instrumentation-gke-opentelemetry-operator/)
+3. **Tracing**: Open source tools like **[OpenTelemetry](https://opentelemetry.io/)**. In production environments, Ideally, we will also use OpenTelemetry tracking package, to send traces to [Google Cloud Trace](https://cloud.google.com/trace) for inspection and analysis; and create analysis report on Cloud Trace to analyse user requuest. See more here. [Easy Telemetry Instrumentation on GKE with the OpenTelemetry Operator](https://cloud.google.com/blog/topics/developers-practitioners/easy-telemetry-instrumentation-gke-opentelemetry-operator/)
     - *Usage*: Distributed tracing with OpenTelemetry provides visibility into the interactions between our services. This can help us understand the flow of requests through our system, identify bottlenecks and latency issues, and understand the impact of changes or failures of a service on other services in the system.
 
 
@@ -130,18 +164,22 @@ The pipeline uses several security best practices to protect your application an
 
 - **Terraform State**: The state of your Terraform configuration is stored in a Google Cloud Storage bucket. This helps protect the state from accidental deletion or modification, which can lead to loss of resources or inconsistent state. This is the best practice recommended by HashiCorp for [storing state](https://developer.hashicorp.com/terraform/language/state/remote).
 
+
 - **Least Privilege**: The service account used by the pipeline has only the permissions necessary to create and manage resources. This follows the principle of least privilege and helps protect your resources from unauthorized access.
 
-- **Credentials**: The pipeline uses a service account to authenticate to Google Cloud. The service account key is stored as a GitHub secret and is not exposed in the pipeline.
+- **Credentials**: The pipeline uses a service account to authenticate to Google Cloud. The service account key is stored as a GitHub secret and is not exposed in the pipeline. It's a good practice to rotate your service account key atleast once every 90 days. 
 
-* The [Monitoring and Logging](#monitoring-and-logging) setup also enhances the security of the application. The enabled logging options (`SYSTEM`, `WORKLOAD`) provide visibility into the system and application behavior, which can help in identifying and investigating suspicious activities. The monitoring options (`SYSTEM`, `POD`) can help in identifying performance anomalies which could indicate an ongoing attack or a system misconfiguration that could potentially be exploited.
+- **Scalability**: For autoscaling of nodes, Google Cloud Autopilot is enabled which follows GKE best practices and recommendations for cluster and workload setup, scalability, and security. When your workloads experience high load and you add more Pods to accommodate the traffic, such as with Kubernetes Horizontal Pod Autoscaling, GKE automatically provisions new nodes for those Pods, and automatically expands the resources in your existing nodes based on need. Autopilot manages Pod bin-packing for you, so you don't have to think about how many Pods are running on each node. 
+
+* [**Monitoring and Logging**](#monitoring-and-logging): Enhances the security of the application. The enabled logging options (`SYSTEM`, `WORKLOAD`) provide visibility into the system and application behavior, which can help in identifying and investigating suspicious activities. The monitoring options (`SYSTEM`, `POD`) can help in identifying performance anomalies which could indicate an ongoing attack or a system misconfiguration that could potentially be exploited.
 
 * In addition, the use of **OpenTelemetry** for distributed tracing can significantly improve the security posture. Distributed tracing provides visibility into the interactions between services in a microservices architecture. This can help in identifying unusual patterns of behavior, such as unexpected communication between services, unusually high latency, etc. These could be indicators of a security incident and can provide valuable context for incident response and forensics.
 
-* Furthermore, the Docker images are built and pushed to a private repository in Google Cloud Artifact Registry, which ensures that only authorized entities can pull the images and that the images are transferred securely over the network. [Google Cloud container Vulnerability scanning](https://cloud.google.com/artifact-analysis/docs/container-scanning-overview) is enabled to scan for known security vulnerabilities and exposures for [Docker CVEs](https://www.cvedetails.com/vulnerability-list/vendor_id-13534). 
+* **Container Vulnerability Scanning**: Furthermore, the Docker images are built and pushed to a private repository in Google Cloud Artifact Registry, which ensures that only authorized entities can pull the images and that the images are transferred securely over the network. [Google Cloud container Vulnerability scanning](https://cloud.google.com/artifact-analysis/docs/container-scanning-overview) is enabled to scan for known security vulnerabilities and exposures for [Docker CVEs](https://www.cvedetails.com/vulnerability-list/vendor_id-13534). 
 
 * **Public vs Private Cluster**: For this particular project, the GKE cluster is exposed publicly because the pipeline needs to run `kubectl` commands from a GitHub Actions runner which is external to the cluster. **In an ideal production environment, the runner would be hosted in the same VPC as the GKE cluster, or a peered VPC, and it would access the GKE cluster using private IPs**. This would **significantly enhance the security of the setup by reducing the attack surface**. However, due to cost and other limitations, it was not possible to implement this in the current project.
 
+* **Using IPv6 Unique Local Addresses**: IPv6 ULA addresses are routable within the scope of private networks, but not publicly routable on the global IPv6 internet, thus providing isolation for private workloads from the internet and other cloud customers. Further, you can allocate and use these addresses without arbitration by a central registration authority. Ensuring uniqueness also eliminates the need for NAT to communicate between private networks. Google Cloud provides you the flexibility to choose a ULA range for your VPC that does not overlap with your on-prem/cross-cloud ULA ranges. 
 
 * Lastly, while the current project does not implement all potential security best practices due to cost and other limitations, the pipeline is designed in such a way that additional security measures can be easily integrated if needed. This could include [Binary Authorization for k8s](https://cloud.google.com/binary-authorization), [network policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/), [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/), [secrets management](https://kubernetes.io/docs/concepts/configuration/secret/), [Liveness, Readiness and Startup Probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/), image scanning, etc.
 
@@ -167,20 +205,19 @@ Contributions are welcome. Please open an issue to discuss your ideas or initiat
 
 ## License
 
-This project is licensed under the terms of the [Custom License](./LICENSE).
+This project is licensed under the terms of the [CC BY-NC-ND 4.0](./LICENSE).
 
 
 ## Acknowledgements
 
-This project's used the voting app architecture from the following repositories:
+This project's uses the voting app architecture(with some modifications) from the following repository:
 - [example-voting-app](https://github.com/dockersamples/example-voting-app)
 
 
-## Connect to me 
+## Connect with me
 [![LinkedIn][linkedin-shield]][linkedin-url]  
 
 <!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [linkedin-shield]: https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white
 [linkedin-url]: https://www.linkedin.com/in/vikram-kushwaha/
 

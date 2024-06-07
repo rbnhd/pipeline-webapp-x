@@ -15,7 +15,7 @@ terraform {
 # If you want to automate this process also, refer: https://cloud.google.com/docs/terraform/resource-management/store-state#create_the_bucket
 terraform {
   backend "gcs" {
-    bucket = "terraform-state-bucket-xyxyxy"
+    # the bucket name is provided dynamically during terraform init as param -backend-config=${}
     prefix = "terraform/state"
   }
 

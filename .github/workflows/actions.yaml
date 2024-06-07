@@ -96,7 +96,12 @@ jobs:
         terraform_version: ${{ env.TF_VERSION }}
 
     - name: Terraform init, fmt, validate & Plan
-      run: terraform -chdir=${{ env.TF_WORKSPACE }} init && terraform -chdir=${{ env.TF_WORKSPACE }} fmt && terraform -chdir=${{ env.TF_WORKSPACE }} validate && terraform -chdir=${{ env.TF_WORKSPACE }} plan
+      run: |
+        cd $TF_WORKSPACE
+        terraform init -backend-config="bucket=${TF_VAR_state_bucket}"
+        terraform validate
+        terraform plan
+        cd -
     
     - name: Terraform Apply
       run: terraform -chdir=${{ env.TF_WORKSPACE }} apply -auto-approve

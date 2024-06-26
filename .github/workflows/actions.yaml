@@ -43,7 +43,6 @@ jobs:
 
 
 
-
     steps:
     - name: Git Checkout
       uses: 'actions/checkout@v4'
@@ -60,7 +59,6 @@ jobs:
 
     - name: "Set up Google Cloud SDK (gcloud cli)"
       uses: "google-github-actions/setup-gcloud@v2"
-
 
 
 
@@ -109,7 +107,6 @@ jobs:
 
 
 
-
     - name: Get Kubernetes Credentials using gcloud cli
     # Starting with v1.26, GKE users will need to download and use a separate authentication plugin to generate GKE-specific tokens...
     # ... This new binary, gke-gcloud-auth-plugin, uses the Kubernetes Client-go Credential Plugin. See more at: https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
@@ -140,18 +137,16 @@ jobs:
 
 
 
-
     - name: Create Docker secret to authenticate against Google Cloud Artifact Registry.
       run: kubectl create secret docker-registry gcp-ar-cred --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev --docker-username=_json_key --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)"
         
 
-
-
     - name: Deploy the sample web-app to GKE & enable logging and monitoring
-      run: |
-        kubectl apply -f ./src/example-voting-app/k8s-specs/
-        gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM,POD
+      run: kubectl apply -f ./src/example-voting-app/k8s-specs/
 
+    # # uncomment to enable detailed Cloud logging and monitoring.
+    # - name: Enable logging and monitoring on GKE cluster
+    #   run: gcloud container clusters update ${{ env.TF_VAR_cluster_name }} --location=${{ vars.GCP_REGION }} --logging=SYSTEM,WORKLOAD --monitoring=SYSTEM,POD
 
 
 
@@ -160,4 +155,4 @@ jobs:
       # set if: always()  In testing env, which means it will run even if previous steps fail.... 
       #  ...This is usually a good practice to clean up resources even if something goes wrong.
       if: always() 
-      run: sleep 600 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve
+      run: sleep 30 && terraform -chdir=${{ env.TF_WORKSPACE }} destroy -auto-approve

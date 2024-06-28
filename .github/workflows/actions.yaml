@@ -141,7 +141,7 @@ jobs:
       run: kubectl create secret docker-registry gcp-ar-cred --docker-server=${{ vars.GCP_REGION }}-docker.pkg.dev --docker-username=_json_key --docker-password="$(cat $GOOGLE_APPLICATION_CREDENTIALS)"
         
 
-    - name: Deploy the sample web-app to GKE & enable logging and monitoring
+    - name: Deploy the sample web-app to GKE
       run: kubectl apply -f ./src/example-voting-app/k8s-specs/
 
     # # uncomment to enable detailed Cloud logging and monitoring.

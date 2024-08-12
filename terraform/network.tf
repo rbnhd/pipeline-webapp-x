@@ -43,7 +43,7 @@ resource "google_compute_firewall" "allow_nodeports" {
   direction = "INGRESS"
   allow {
     protocol = "tcp"
-    ports    = ["31000-31001"] # The port ranges used by k8s-service
+    ports    = ["31000-31005"] # The port ranges used by k8s-service
   }
   source_ranges = ["0.0.0.0/0"]
   target_tags   = ["gke-node", "${var.cluster_name}"] # Only allow ingress to gke node created
